@@ -1,0 +1,301 @@
+<?php
+namespace Models;
+session_start();
+include_once('includes/config.php');
+include_once("models.login.php");
+
+if (strlen($_SESSION['id']) == 0) {   
+    header('location:logout.php');
+    exit();
+}
+
+// Classe Users
+class Users {
+    private $con;
+
+    public function __construct($db) {
+        $this->con = $db;
+    }
+
+    // Método para adicionar endereços
+    public function addAddress($userId, $baddress, $bcity, $bstate, $bpincode, $bcountry, $saddress, $scity, $sstate, $spincode, $scountry) {
+        $query = $this->con->prepare("INSERT INTO addresses (userId, billingAddress, biilingCity, billingState, billingPincode, billingCountry, shippingAddress, shippingCity, shippingState, shippingPincode, shippingCountry) 
+                                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $query->bind_param("isssisssiss", $userId, $baddress, $bcity, $bstate, $bpincode, $bcountry, $saddress, $scity, $sstate, $spincode, $scountry);
+        
+        if ($query->execute()) {
+            return "Seu endereço foi adicionado com sucesso";
+        } else {
+            return "Algo deu errado. Por favor, tente novamente.";
+        }
+    }
+}
+
+// Criando a instância da classe Users
+$users = new Users($con);
+
+// Verifica se o formulário foi enviado
+if (isset($_POST['submit'])) {
+    $userId = $_SESSION['id'];
+
+    // Pegando valores do formulário
+    $baddress = $_POST['baddress'];
+    $bcity = $_POST['bcity'];
+    $bstate = $_POST['bstate'];
+    $bpincode = $_POST['bpincode'];
+    $bcountry = $_POST['bcountry'];
+    $saddress = $_POST['saddress'];
+    $scity = $_POST['scity'];
+    $sstate = $_POST['sstate'];
+    $spincode = $_POST['spincode'];
+    $scountry = $_POST['scountry'];
+
+    // Chamando o método da classe
+    $message = $users->addAddress($userId, $baddress, $bcity, $bstate, $bpincode, $bcountry, $saddress, $scity, $sstate, $spincode, $scountry);
+    
+    echo "<script>alert('$message');</script>";
+    echo "<script type='text/javascript'> document.location ='manage-addresses.php'; </script>";
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Portal de Compras | Checkout</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Bootstrap icons-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+        <script src="js/jquery.min.js"></script>
+       <!--  <link href="css/bootstrap.min.css" rel="stylesheet" /> -->
+    </head>
+<style type="text/css"></style>
+    <body>
+<?php include_once('includes/header.php');?>
+        <!-- Header-->
+        <header class="bg-dark py-5">
+            <div class="container px-4 px-lg-5 my-5">
+
+
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">Endereços já listados</h1>
+                </div>
+
+            </div>
+        </header>
+        <!-- Section-->
+        <section class="py-5">
+            <div class="container px-4  mt-5">
+     
+
+
+
+<h5>Endereços já listados</h5>
+<?php 
+$uid=$_SESSION['id'];
+$query=mysqli_query($con,"select * from addresses where userId='$uid'");
+$count=mysqli_num_rows($query);
+if($count==0):
+echo "<font color='red'>Nenhum endereço encontrado.</font>";
+else:
+ ?>
+ <form method="post">
+    <input type="hidden" name="grandtotal" value="<?php echo $grantotal; ?>">
+<div class="row">
+<div class="col-6">
+      <table class="table">
+            <thead>
+                <tr>
+                    <th colspan="4"><h5>Endereço de Cobrança</h5></th>
+                </tr>
+            </thead>
+            <tr>
+                <thead>
+                    <th width="250">Endereço</th>
+                    <th>Cidade</th>
+                    <th>Estado</th>
+                    <th>CEP</th>
+                    <th>País</th>
+            
+                </thead>
+            </tr>
+            </table>  
+
+</div>
+<div class="col-6">
+          <table class="table">
+            <thead>
+                <tr>
+                    <th colspan="4"><h5>Endereço para Envio</h5></th>
+                </tr>
+            </thead>
+            <tr>
+                <thead>
+                    <th width="250">Endereço</th>
+                    <th>Cidade</th>
+                    <th>Estado</th>
+                    <th>CEP</th>
+                    <th>Páis</th>
+            
+                </thead>
+            </tr>
+            </tbody>
+            </table> 
+</div>
+</div>
+<!-- Fecthing Values-->
+<?php while ($result=mysqli_fetch_array($query)) { ?>
+<div class="row">
+<div class="col-6">
+      <table class="table">
+
+            <tbody> 
+
+                <tr>
+            
+                    <td width="250"><?php echo $result['billingAddress'];?></td>
+                    <td><?php echo $result['biilingCity'];?></td>
+                    <td><?php echo $result['billingState'];?></td>
+                    <td><?php echo $result['billingPincode'];?></td>
+                    <td><?php echo $result['billingCountry'];?></td>
+                </tr>
+            </tbody>
+            </table>  
+
+</div>
+<div class="col-6">
+          <table class="table">
+            <tbody> 
+                <tr>
+                    <td width="250"><?php echo $result['shippingAddress'];?></td>
+                    <td><?php echo $result['shippingCity'];?></td>
+                    <td><?php echo $result['shippingState'];?></td>
+                    <td><?php echo $result['shippingPincode'];?></td>
+                    <td><?php echo $result['shippingCountry'];?></td>
+                </tr>
+            </tbody>
+            </table> 
+</div>
+</div>
+
+
+<?php } endif;?>
+
+</form>
+
+<hr />
+<form method="post" name="address">
+
+     <div class="row">
+        <!--Billing Addresss --->
+        <div class="col-6">
+               <div class="row">
+         <div class="col-9" align="center"><h5>Novo endereço de cobrança</h5><br /></div>
+         <hr />
+     </div>
+     <div class="row">
+         <div class="col-3">Endereço</div>
+         <div class="col-6"><input type="text" name="baddress" id="baddress" class="form-control" required ></div>
+     </div>
+       <div class="row mt-3">
+         <div class="col-3">Cidade</div>
+         <div class="col-6"><input type="text" name="bcity" id="bcity"  class="form-control" required>
+         </div>
+          
+
+     </div>
+
+       <div class="row mt-3">
+         <div class="col-3">Estado</div>
+         <div class="col-6"><input type="text" name="bstate" id="bstate" class="form-control" required></div>
+     </div>
+
+          <div class="row mt-3">
+         <div class="col-3">Pincode</div>
+         <div class="col-6"><input type="text" name="bpincode" id="bpincode" pattern="[0-9]+" title="only numbers" maxlength="6" class="form-control" required></div>
+     </div>
+
+           <div class="row mt-3">
+         <div class="col-3">País</div>
+         <div class="col-6"><input type="text" name="bcountry" id="bcountry" class="form-control" required></div>
+     </div>
+ </div>
+        <!--Shipping Addresss --->
+        <div class="col-6">
+               <div class="row">
+         <div class="col-9" align="center"><h5>Novo endereço de entrega</h5> 
+            <input type="checkbox" name="adcheck" value="1"/>
+            <small>Endereço de entrega igual ao endereço de cobrança</small></div>
+         <hr />
+     </div>
+     <div class="row">
+         <div class="col-3">Endereço</div>
+         <div class="col-6"><input type="text" name="saddress"  id="saddress" class="form-control" required ></div>
+     </div>
+       <div class="row mt-3">
+         <div class="col-3">Cidade</div>
+         <div class="col-6"><input type="text" name="scity" id="scity" class="form-control" required>
+         </div>
+          
+     </div>
+
+       <div class="row mt-3">
+         <div class="col-3">Estado</div>
+         <div class="col-6"><input type="text" name="sstate" id="sstate" class="form-control" required></div>
+     </div>
+
+          <div class="row mt-3">
+         <div class="col-3">CEP</div>
+         <div class="col-6"><input type="text" name="spincode" id="spincode" pattern="[0-9]+" title="only numbers" maxlength="6" class="form-control" required></div>
+     </div>
+
+           <div class="row mt-3">
+         <div class="col-3">País</div>
+         <div class="col-6"><input type="text" name="scountry" id="scountry" class="form-control" required></div>
+     </div>
+
+      
+ </div>
+         <div class="row mt-3">
+                 <div class="col-5">&nbsp;</div>
+         <div class="col-6"><input type="submit" name="submit" id="submit" class="btn btn-primary" value="Add" required></div>
+     </div>
+
+</div>
+ </form>
+
+              
+            </div>
+
+ 
+</div>
+        </section>
+        <!-- Footer-->
+   <?php include_once('includes/footer.php'); ?>
+        <!-- Bootstrap core JS-->
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+        <script type="text/javascript">
+    $(document).ready(function(){
+        $('input[type="checkbox"]').click(function(){
+            if($(this).prop("checked") == true){
+                $('#saddress').val($('#baddress').val() );
+                $('#scity').val($('#bcity').val());
+                $('#sstate').val($('#bstate').val());
+                $('#spincode').val( $('#bpincode').val());
+                  $('#scountry').val($('#bcountry').val() );
+            } 
+            
+        });
+    });
+</script>
+    </body>
+</html>
+<?php  ?>
