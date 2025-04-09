@@ -10,7 +10,13 @@
 
 <?php if(strlen($_SESSION['login']))
     {   ?>
-				<li><a href="#"><i class="icon fa fa-user"></i>Bem Vindo -<?php echo htmlentities($_SESSION['username']);?></a></li>
+				<li style="list-style: none;">
+  <span style="color: #000; text-decoration: none; cursor: default;">
+    <i class="icon fa fa-user"></i>
+    <strong>Bem Vindo:</strong> <?php echo htmlentities($_SESSION['username']); ?>
+  </span>
+</li>
+
 				<?php } ?>
 
 					<li><a href="my-account.php"><i class="icon fa fa-user"></i>Minha Conta</a></li>

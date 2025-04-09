@@ -1,6 +1,28 @@
-<?php 
-namespace Models;
+<?php
 session_start();
+include('includes/config.php');
+error_reporting(0);
+
+if(isset($_POST['ordersubmit'])) {
+	if(strlen($_SESSION['login']) == 0) {   
+		header('location:login.php');
+		exit();
+	} else {
+		$quantity = $_POST['quantity'];
+		$pdd = $_SESSION['pid'];
+		$value = array_combine($pdd, $quantity);
+
+		foreach($value as $qty => $val34){
+			mysqli_query($con, "INSERT INTO orders(userId, productId, quantity) VALUES('".$_SESSION['id']."', '$qty', '$val34')");
+		}
+
+		unset($_SESSION['cart']);
+		header('location:payment-method.php');
+		exit();
+	}
+}
+
+
 
 if (isset($_SESSION['msg_success'])): ?>
 	<script>

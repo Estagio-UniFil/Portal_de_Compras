@@ -16,6 +16,9 @@ class Orders {
     public function addToCart($productId) {
         if (isset($_SESSION['cart'][$productId])) {
             $_SESSION['cart'][$productId]['quantity']++;
+            $_SESSION['msg_success'] = "Quantidade do produto atualizada no carrinho.";
+            header("Location: my-cart.php");
+            exit();
         } else {
             $stmt = $this->con->prepare("SELECT id, productPrice FROM products WHERE id = ?");
             $stmt->bind_param("i", $productId);
@@ -28,13 +31,15 @@ class Orders {
                     "quantity" => 1,
                     "price" => $product['productPrice']
                 ];
-                echo "<script>alert('O Produto foi adicionado ao carrinho');</script>";
-                echo "<script type='text/javascript'> document.location ='my-cart.php'; </script>";
+                $_SESSION['msg_success'] = "Produto adicionado ao carrinho com sucesso.";
+                header("Location: my-cart.php");
+                exit();
             } else {
-                return "O ID do produto é inválido";
+                $_SESSION['msg_error'] = "O ID do produto é inválido.";
+                header("Location: index.php");
+                exit();
             }
         }
-        return true;
     }
 }
 
@@ -57,6 +62,7 @@ class Wishlist {
         }
     }
 }
+
 
 // Criando instâncias das classes
 $order = new Orders($con);
@@ -90,6 +96,9 @@ if (isset($_GET['pid']) && $_GET['action'] == "wishlist") {
 <html lang="en">
 	<head>
 		<!-- Meta -->
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -142,7 +151,23 @@ if (isset($_GET['pid']) && $_GET['action'] == "wishlist") {
 
 	</head>
     <body class="cnt-home">
-	
+	<?php if (isset($_SESSION['msg_success'])): ?>
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>");
+  });
+</script>
+<?php unset($_SESSION['msg_success']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['msg_error'])): ?>
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    toastr.error("<?php echo addslashes($_SESSION['msg_error']); ?>");
+  });
+</script>
+<?php unset($_SESSION['msg_error']); ?>
+<?php endif; ?>
 <header class="header-style-1">
 
 	<!-- ============================================== TOP MENU ============================================== -->

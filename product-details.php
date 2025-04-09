@@ -1,20 +1,5 @@
 <?php
 session_start();
- if (!empty($_SESSION['msg_success'])): ?>
-	<div class="alert alert-success alert-dismissible fade show" role="alert">
-		<strong>Sucesso!</strong> <?php echo htmlentities($_SESSION['msg_success']); ?>
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-	</div>
-	<?php unset($_SESSION['msg_success']); ?>
-<?php endif; ?>
-
-<?php if (!empty($_SESSION['msg_error'])): ?>
-	<div class="alert alert-danger alert-dismissible fade show" role="alert">
-		<strong>Erro!</strong> <?php echo htmlentities($_SESSION['msg_error']); ?>
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-	</div>
-	<?php unset($_SESSION['msg_error']); ?>
-<?php endif; 
 
 error_reporting(0);
 include('includes/config.php');
@@ -157,33 +142,45 @@ if (isset($_POST['submit'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+<style>
+.modal-custom {
+  display: block;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+  animation: fadein 0.4s;
+}
+
+.modal-content-custom {
+  background-color: #dff0d8;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #3c763d;
+  width: 80%;
+  max-width: 400px;
+  color: #3c763d;
+  border-radius: 5px;
+  position: relative;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.close-custom {
+  color: #3c763d;
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+}
 </style>
+
 	<head>
-	<style>
-.alert-custom {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #4CAF50; /* verde */
-    color: white;
-    padding: 15px 25px;
-    border-radius: 5px;
-    z-index: 9999;
-    display: none;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    animation: fadein 0.5s, fadeout 0.5s 3s;
-}
-
-@keyframes fadein {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-@keyframes fadeout {
-    from {opacity: 1;}
-    to {opacity: 0;}
-}
-</style>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -214,12 +211,8 @@ if (isset($_POST['submit'])) {
 		<link href='http://fonts.googleapis.com/css?family=Roboto:300,400,500,700' rel='stylesheet' type='text/css'>
 		<link rel="shortcut icon" href="assets/images/favicon.ico">
 	</head>
-	<script>
-
-</script>
-
     <body class="cnt-home">
-	<?php if (isset($_SESSION['successmsg'])): ?>
+	<<?php if (isset($_SESSION['successmsg'])): ?>
 <!-- Modal Personalizado -->
 <div id="customModal" class="modal-custom">
   <div class="modal-content-custom">
@@ -228,6 +221,7 @@ if (isset($_POST['submit'])) {
   </div>
 </div>
 <?php endif; ?>
+
 
 	
 <header class="header-style-1">
