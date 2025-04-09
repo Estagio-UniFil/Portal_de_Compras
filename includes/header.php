@@ -59,12 +59,11 @@ $cartcount=$result['qtyy'];
                         ?>
                         <a class="btn btn-outline-dark" href="my-cart.php">
                             <i class="bi-cart-fill me-1"></i>
-                            Carrinho
-                            <?php if($cartcount==0):?>
-                            <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
-                        <?php else: ?>
-                            <span class="badge bg-dark text-white ms-1 rounded-pill"><?php echo $cartcount; ?></span>
-                            <?php endif;?>
+                            <span class="fw-bold fs-5 me-2">Carrinho</span>
+<span class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm">
+    <?php echo $cartcount ?? 0; ?>
+</span>
+
                         </a>
                     </form>
 

@@ -176,6 +176,30 @@ echo "<script>alert('O endereço de entrega foi atualizado');</script>";
 
 	</head>
     <body class="cnt-home">
+		<!-- jQuery + Toastr -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+$(document).ready(function () {
+  $('.update-cart-btn').click(function () {
+    const productId = $(this).data('id');
+    const quantity = $(`.quantity-input[data-id="${productId}"]`).val();
+
+    $.post('update-cart.php', { id: productId, quantity: quantity }, function (data) {
+      if (data.success) {
+        toastr.success(data.msg);
+        setTimeout(() => {
+          location.reload(); // ou você pode atualizar somente o total sem reload
+        }, 1000);
+      } else {
+        toastr.error(data.msg);
+      }
+    }, 'json');
+  });
+});
+</script>
 	
 		<!-- ============================================== HEADER ============================================== -->
 <header class="header-style-1">
@@ -284,15 +308,13 @@ $num=mysqli_num_rows($rt);
 						
 					</td>
 					<td class="cart-product-quantity">
-						<div class="quant-input">
-				                <div class="arrows">
-				                  <div class="arrow plus gradient"><span class="ir"><i class="icon fa fa-sort-asc"></i></span></div>
-				                  <div class="arrow minus gradient"><span class="ir"><i class="icon fa fa-sort-desc"></i></span></div>
-				                </div>
-				             <input type="text" value="<?php echo $_SESSION['cart'][$row['id']]['quantity']; ?>" name="quantity[<?php echo $row['id']; ?>]">
-				             
-			              </div>
-		            </td>
+  <div class="quant-input d-flex align-items-center">
+    <input type="number" min="0" class="form-control quantity-input" data-id="<?= $row['id'] ?>" value="<?= $_SESSION['cart'][$row['id']]['quantity']; ?>">
+    <button type="button" class="btn btn-sm btn-primary ms-2 update-cart-btn" data-id="<?= $row['id'] ?>">
+      Atualizar
+    </button>
+  </div>
+</td>
 					<td class="cart-product-sub-total">
     <span class="cart-sub-total-price">
         R$ <?php echo number_format($row['productPrice'], 2, ',', '.'); ?>
@@ -306,7 +328,7 @@ $num=mysqli_num_rows($rt);
 </td>
 
 
-					<td class="cart-product-grand-total"><span class="cart-grand-total-price"><?php echo ($_SESSION['cart'][$row['id']]['quantity']*$row['productPrice']+$row['shippingCharge']); ?>.00</span></td>
+					<td class="cart-product-grand-total"><span class="cart-grand-total-price"><?php echo ($_SESSION['cart'][$row['id']]['quantity']*$row['productPrice']+$row['shippingCharge']); ?></span></td>
 				</tr>
 
 				<?php } }
@@ -427,7 +449,7 @@ while($row=mysqli_fetch_array($query))
 				<th>
 					
 					<div class="cart-grand-total">
-						Total Geral<span class="inner-left-md"><?php echo $_SESSION['tp']="$totalprice". ".00"; ?></span>
+						Total Geral R$<span class="inner-left-md"><?php echo $_SESSION['tp']="$totalprice". ""; ?></span>
 					</div>
 				</th>
 			</tr>
