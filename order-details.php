@@ -135,8 +135,8 @@ while($row=mysqli_fetch_array($query))
 					<td class="cart-product-sub-total"><?php echo $row['odate']; ?>  </td>
 					
 					<td>
- <a href="javascript:void(0);" onClick="popUpWindow('track-order.php?oid=<?php echo htmlentities($row['orderid']);?>');" title="Track order">
-					Track</td>
+ <a href="javascript:void(0);" onClick="popUpWindow('track-order.php?oid=<?php echo htmlentities($row['orderid']);?>');" title="Rastrear Pedido">
+					Rastrear</td>
 				</tr>
 <?php $cnt=$cnt+1;} } else { ?>
 				<tr><td colspan="8">O ID do pedido ou o ID do e-mail registrado é inválido</td></tr>

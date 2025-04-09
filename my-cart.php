@@ -309,10 +309,7 @@ $num=mysqli_num_rows($rt);
 					</td>
 					<td class="cart-product-quantity">
   <div class="quant-input d-flex align-items-center">
-    <input type="number" min="0" class="form-control quantity-input" data-id="<?= $row['id'] ?>" value="<?= $_SESSION['cart'][$row['id']]['quantity']; ?>">
-    <button type="button" class="btn btn-sm btn-primary ms-2 update-cart-btn" data-id="<?= $row['id'] ?>">
-      Atualizar
-    </button>
+  <input type="number" min="0" class="form-control" name="quantity[<?php echo $row['id']; ?>]" value="<?php echo $_SESSION['cart'][$row['id']]['quantity']; ?>" />
   </div>
 </td>
 					<td class="cart-product-sub-total">
@@ -507,7 +504,7 @@ echo "Seu carrinho de compras está vazio";
 		});
 
 		$(window).bind("load", function() {
-		   $('.show-theme-options').delay(2000).trigger('click');
+		   $('.show-theme-options').delay(2000).trigger('click');	
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
