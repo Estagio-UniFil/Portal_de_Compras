@@ -1,31 +1,38 @@
 <?php 
+namespace Models;
 session_start();
+
+if (isset($_SESSION['msg_success'])): ?>
+	<script>
+	  window.addEventListener('DOMContentLoaded', function() {
+		toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>");
+	  });
+	</script>
+	<?php unset($_SESSION['msg_success']); ?>
+	<?php endif; 
 error_reporting(0);
 include('includes/config.php');
-if(isset($_POST['submit'])){
-		if(!empty($_SESSION['cart'])){
-		foreach($_POST['quantity'] as $key => $val){
-			if($val==0){
-				unset($_SESSION['cart'][$key]);
-			}else{
-				$_SESSION['cart'][$key]['quantity']=$val;
-
+if(isset($_POST['submit']))
+		if (!empty($_SESSION['cart'])) {
+			foreach ($_POST['quantity'] as $key => $val) {
+				if ($val == 0) {
+					unset($_SESSION['cart'][$key]);
+				} else {
+					$_SESSION['cart'][$key]['quantity'] = $val;
+				}
 			}
+			$_SESSION['msg_success'] = "Seu carrinho foi atualizado com sucesso!";
+			header("Location: my-cart.php");
+			exit();
 		}
-			echo "<script>alert('Seu carrinho foi atualizado');</script>";
-		}
-	}
 // Code for Remove a Product from Cart
-if(isset($_POST['remove_code']))
-	{
-
-if(!empty($_SESSION['cart'])){
-		foreach($_POST['remove_code'] as $key){
-			
-				unset($_SESSION['cart'][$key]);
-		}
-			echo "<script>alert('Seu carrinho foi atualizado');</script>";
+if (isset($_POST['remove_selected']) && isset($_POST['remove_code']) && !empty($_SESSION['cart'])) {
+	foreach ($_POST['remove_code'] as $key) {
+		unset($_SESSION['cart'][$key]);
 	}
+	$_SESSION['msg_success'] = "Itens removidos do carrinho com sucesso!";
+	header("Location: my-cart.php");
+	exit();
 }
 // code for insert product in order table
 
@@ -46,13 +53,20 @@ else{
 
 		foreach($value as $qty=> $val34){
 
+			unset($_SESSION['cart']);
+
+			header('location:payment-method.php');
+		exit();
+	}
+}
+
 
 
 mysqli_query($con,"insert into orders(userId,productId,quantity) values('".$_SESSION['id']."','$qty','$val34')");
 header('location:payment-method.php');
 }
-}
-}
+
+
 
 // code for billing address updation
 	if(isset($_POST['update']))
@@ -88,6 +102,9 @@ echo "<script>alert('O endereço de entrega foi atualizado');</script>";
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 		<!-- Meta -->
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -138,8 +155,6 @@ echo "<script>alert('O endereço de entrega foi atualizado');</script>";
 	</head>
     <body class="cnt-home">
 	
-		
-	
 		<!-- ============================================== HEADER ============================================== -->
 <header class="header-style-1">
 <?php include('includes/top-header.php');?>
@@ -175,7 +190,7 @@ if(!empty($_SESSION['cart'])){
 					<th class="cart-description item">Imagem</th>
 					<th class="cart-product-name item">Nome do Produto</th>
 			
-					<th class="cart-qty item">Qunatidade</th>
+					<th class="cart-qty item">Quantidade</th>
 					<th class="cart-sub-total item">Preço por Unidade</th>
 					<th class="cart-sub-total item">Taxa de Frete</th>
 					<th class="cart-total last-item">Total Geral</th>
@@ -188,6 +203,8 @@ if(!empty($_SESSION['cart'])){
 							<span class="">
 								<a href="index.php" class="btn btn-upper btn-primary outer-left-xs">Continuar Comprando</a>
 								<input type="submit" name="submit" value="Atualizar Carrinho" class="btn btn-upper btn-primary pull-right outer-right-xs">
+								<input type="submit" name="remove_selected" value="Remover Selecionados" class="btn btn-upper btn-primary pull-right outer-right-xs">
+
 							</span>
 						</div><!-- /.shopping-cart-btn -->
 					</td>
@@ -254,8 +271,18 @@ $num=mysqli_num_rows($rt);
 				             
 			              </div>
 		            </td>
-					<td class="cart-product-sub-total"><span class="cart-sub-total-price"><?php echo "Rs"." ".$row['productPrice']; ?>.00</span></td>
-<td class="cart-product-sub-total"><span class="cart-sub-total-price"><?php echo "Rs"." ".$row['shippingCharge']; ?>.00</span></td>
+					<td class="cart-product-sub-total">
+    <span class="cart-sub-total-price">
+        R$ <?php echo number_format($row['productPrice'], 2, ',', '.'); ?>
+    </span>
+</td>
+
+<td class="cart-product-sub-total">
+    <span class="cart-sub-total-price">
+        R$ <?php echo number_format($row['shippingCharge'], 2, ',', '.'); ?>
+    </span>
+</td>
+
 
 					<td class="cart-product-grand-total"><span class="cart-grand-total-price"><?php echo ($_SESSION['cart'][$row['id']]['quantity']*$row['productPrice']+$row['shippingCharge']); ?>.00</span></td>
 				</tr>
@@ -388,6 +415,7 @@ while($row=mysqli_fetch_array($query))
 					<td>
 						<div class="cart-checkout-btn pull-right">
 							<button type="submit" name="ordersubmit" class="btn btn-primary">FAZER O CHECKOUT</button>
+							
 						
 						</div>
 					</td>

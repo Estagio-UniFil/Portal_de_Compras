@@ -3,7 +3,6 @@ namespace Models;
 session_start();
 error_reporting(0);
 include('includes/config.php');
-include("login.php");
 
 
 class Users {

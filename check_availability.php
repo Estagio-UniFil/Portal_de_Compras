@@ -1,7 +1,7 @@
 <?php 
 namespace Models;
 include("includes/config.php");
-include_once("models.signup.php");
+
 
 class Users {
     private $con;

@@ -1,7 +1,41 @@
 <?php
 session_start();
+ if (!empty($_SESSION['msg_success'])): ?>
+	<div class="alert alert-success alert-dismissible fade show" role="alert">
+		<strong>Sucesso!</strong> <?php echo htmlentities($_SESSION['msg_success']); ?>
+		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+	</div>
+	<?php unset($_SESSION['msg_success']); ?>
+<?php endif; ?>
+
+<?php if (!empty($_SESSION['msg_error'])): ?>
+	<div class="alert alert-danger alert-dismissible fade show" role="alert">
+		<strong>Erro!</strong> <?php echo htmlentities($_SESSION['msg_error']); ?>
+		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+	</div>
+	<?php unset($_SESSION['msg_error']); ?>
+<?php endif; 
+
 error_reporting(0);
 include('includes/config.php');
+
+$orders = new Orders($con);
+
+if (isset($_GET['action']) && $_GET['action'] === "add" && isset($_GET['id'])) {
+    $status = $orders->addToCart($_GET['id']);
+
+    if ($status === "adicionado" || $status === "incrementado") {
+        $_SESSION['successmsg'] = "Produto adicionado ao carrinho com sucesso!";
+        header("Location: product-details.php?pid=" . $_GET['id']);
+        exit();
+    } elseif ($status === "invalido") {
+        $_SESSION['errormsg'] = "Produto inválido.";
+        header("Location: index.php");
+        exit();
+    }
+}
+
+
 
 class Orders {
     private $con;
@@ -15,6 +49,7 @@ class Orders {
 
         if (isset($_SESSION['cart'][$id])) {
             $_SESSION['cart'][$id]['quantity']++;
+            return "incrementado";
         } else {
             $query = $this->con->prepare("SELECT id, productPrice FROM products WHERE id = ?");
             $query->bind_param("i", $id);
@@ -27,14 +62,13 @@ class Orders {
                     "quantity" => 1,
                     "price" => $row['productPrice']
                 ];
-                echo "<script>alert('O Produto foi adicionado ao carrinho');</script>";
-                echo "<script type='text/javascript'> document.location ='my-cart.php'; </script>";
+                return "adicionado";
             } else {
-                echo "<script>alert('ID do produto inválido!');</script>";
+                return "invalido";
             }
         }
     }
-}
+}	
 
 class Wishlist {
     private $con;
@@ -123,7 +157,33 @@ if (isset($_POST['submit'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+</style>
 	<head>
+	<style>
+.alert-custom {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #4CAF50; /* verde */
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    animation: fadein 0.5s, fadeout 0.5s 3s;
+}
+
+@keyframes fadein {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes fadeout {
+    from {opacity: 1;}
+    to {opacity: 0;}
+}
+</style>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -154,7 +214,21 @@ if (isset($_POST['submit'])) {
 		<link href='http://fonts.googleapis.com/css?family=Roboto:300,400,500,700' rel='stylesheet' type='text/css'>
 		<link rel="shortcut icon" href="assets/images/favicon.ico">
 	</head>
+	<script>
+
+</script>
+
     <body class="cnt-home">
+	<?php if (isset($_SESSION['successmsg'])): ?>
+<!-- Modal Personalizado -->
+<div id="customModal" class="modal-custom">
+  <div class="modal-content-custom">
+    <span class="close-custom" onclick="document.getElementById('customModal').style.display='none'">&times;</span>
+    <p><?php echo $_SESSION['successmsg']; unset($_SESSION['successmsg']); ?></p>
+  </div>
+</div>
+<?php endif; ?>
+
 	
 <header class="header-style-1">
 
@@ -280,7 +354,7 @@ while ($rws=mysqli_fetch_array($ret)) {
 							</a>
 							<?php } else { ?>
 								<div class="action" style="color:red">Fora de Estoque</div>
-							<<?php } ?>
+							<?php } ?>
 															
 								</div>
 								

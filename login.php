@@ -2,8 +2,8 @@
 namespace Models;
 session_start();
 error_reporting(0);
-include_once('includes/config.php');
-include_once("models.signup.php");
+include('includes/config.php');
+
 
 class Users {
     private $con;
