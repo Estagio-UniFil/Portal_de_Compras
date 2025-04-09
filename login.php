@@ -13,50 +13,52 @@ class Users {
     }
 
     // Método para registrar um novo usuário
-    public function register($name, $email, $contactno, $password) {
-        $passwordHash = md5($password);
-        $stmt = $this->con->prepare("INSERT INTO users (name, email, contactno, password) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $name, $email, $contactno, $passwordHash);
-        if ($stmt->execute()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+	public function register($name, $email, $contactno, $password) {
+		// Usando password_hash() para gerar um hash seguro
+		$passwordHash = password_hash($password, PASSWORD_DEFAULT);
+		$stmt = $this->con->prepare("INSERT INTO users (name, email, contactno, password) VALUES (?, ?, ?, ?)");
+		$stmt->bind_param("ssss", $name, $email, $contactno, $passwordHash);
+		if ($stmt->execute()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
     // Método para login do usuário
-    public function login($email, $password) {
-        $passwordHash = md5($password);
-        $stmt = $this->con->prepare("SELECT * FROM users WHERE email = ? AND password = ?");
-        $stmt->bind_param("ss", $email, $passwordHash);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-
-        if ($user) {
-            $_SESSION['login'] = $email;
-            $_SESSION['id'] = $user['id'];
-            $_SESSION['username'] = $user['name'];
-
-            // Registra o log de login do usuário
-            $uip = $_SERVER['REMOTE_ADDR'];
-            $status = 1;
-            $log = $this->con->prepare("INSERT INTO userlog (userEmail, userip, status) VALUES (?, ?, ?)");
-            $log->bind_param("ssi", $email, $uip, $status);
-            $log->execute();
-
-            return true;
-        } else {
-            // Registra tentativa de login falha
-            $uip = $_SERVER['REMOTE_ADDR'];
-            $status = 0;
-            $log = $this->con->prepare("INSERT INTO userlog (userEmail, userip, status) VALUES (?, ?, ?)");
-            $log->bind_param("ssi", $email, $uip, $status);
-            $log->execute();
-
-            return false;
-        }
-    }
+	public function login($email, $password) {
+		// Remover o uso de md5 e usar o banco de dados diretamente
+		$stmt = $this->con->prepare("SELECT * FROM users WHERE email = ?");
+		$stmt->bind_param("s", $email);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$user = $result->fetch_assoc();
+	
+		if ($user && password_verify($password, $user['password'])) {
+			// Senha correta
+			$_SESSION['login'] = $email;
+			$_SESSION['id'] = $user['id'];
+			$_SESSION['username'] = $user['name'];
+	
+			// Registra o log de login do usuário
+			$uip = $_SERVER['REMOTE_ADDR'];
+			$status = 1;
+			$log = $this->con->prepare("INSERT INTO userlog (userEmail, userip, status) VALUES (?, ?, ?)");
+			$log->bind_param("ssi", $email, $uip, $status);
+			$log->execute();
+	
+			return true;
+		} else {
+			// Registra tentativa de login falha
+			$uip = $_SERVER['REMOTE_ADDR'];
+			$status = 0;
+			$log = $this->con->prepare("INSERT INTO userlog (userEmail, userip, status) VALUES (?, ?, ?)");
+			$log->bind_param("ssi", $email, $uip, $status);
+			$log->execute();
+	
+			return false;
+		}
+	}
 }
 
 // Criando um objeto da classe User
