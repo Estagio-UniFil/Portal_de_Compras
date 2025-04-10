@@ -122,6 +122,23 @@ $("#loaderIcon").hide();
 error:function (){}
 });
 }
+
+
+function checkContactAvailability() {
+    $("#loaderIcon").show();
+    jQuery.ajax({
+        url: "check_availability.php",
+        data: { contact: $("#contactno").val() },
+        type: "POST",
+        success: function(data) {
+            $("#contact-status").html(data);
+            $("#loaderIcon").hide();
+        },
+        error: function() {}
+    });
+}
+
+</script>
 </script>
 <style type="text/css"></style>
     <body>
@@ -156,10 +173,13 @@ error:function (){}
           
      </div>
 
-       <div class="row mt-3">
-         <div class="col-2">Número de contato</div>
-         <div class="col-6"><input type="text" name="contactnumber" pattern="[0-9]{10}" title="10 numeric characters only" class="form-control" required></div>
-     </div>
+     <input type="tel" name="contactno" id="contactno" class="form-control" required 
+    placeholder="(43) 91234-5678"
+    pattern="^\([1-9]{2}\)\s9[0-9]{4}-[0-9]{4}$"
+    title="Formato válido: (43) 91234-5678"
+    onblur="checkContactAvailability()" />
+<span id="contact-status" style="font-size:12px;"></span>
+
 
           <div class="row mt-3">
          <div class="col-2">Senha</div>

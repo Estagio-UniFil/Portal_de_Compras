@@ -3,7 +3,7 @@ namespace Models;
 session_start();
 error_reporting(0);
 include_once('includes/config.php');
-include_once('models/Login.php'); // Certifique-se de que este arquivo é necessário
+
 
 class Users {
     private $con;
@@ -49,17 +49,23 @@ $userProfile = new Users($con, $userId);
 
 // Atualizar endereço de cobrança
 if (isset($_POST['update'])) {
-    $billingAddress = $_POST['billingaddress'] ?? ''; // Prevenção caso não exista
+    $billingAddress = $_POST['billingaddress'] ?? '';
     $billingState = $_POST['billingstate'] ?? '';
     $billingCity = $_POST['billingcity'] ?? '';
     $billingPincode = $_POST['billingpincode'] ?? '';
-    
+
     if ($userProfile->updateBillingAddress($billingAddress, $billingState, $billingCity, $billingPincode)) {
-        echo "<script>alert('O endereço de cobrança foi atualizado');</script>";
+        $_SESSION['msg_success'] = "Endereço de cobrança atualizado com sucesso!";
     } else {
-        echo "<script>alert('Erro ao atualizar o endereço de cobrança');</script>";
+        $_SESSION['msg_error'] = "Erro ao atualizar o endereço de cobrança.";
     }
+
+    header("Location: ".$_SERVER['PHP_SELF']);
+    exit();
 }
+
+
+
 
 // Atualizar endereço de envio
 if (isset($_POST['shipupdate'])) {
@@ -68,12 +74,15 @@ if (isset($_POST['shipupdate'])) {
     $shippingCity = $_POST['shippingcity'] ?? '';
     $shippingPincode = $_POST['shippingpincode'] ?? '';
 
-    if ($userProfile->updateShippingAddress($shippingAddress, $shippingState, $shippingCity, $shippingPincode)) {
-        echo "<script>alert('O endereço de entrega foi atualizado');</script>";
-    } else {
-        echo "<script>alert('Erro ao atualizar o endereço de entrega');</script>";
-    }
-}
+	if ($userProfile->updateShippingAddress($shippingAddress, $shippingState, $shippingCity, $shippingPincode)) {
+		$_SESSION['msg_success'] = "Endereço de envio atualizado com sucesso!";
+	} else {
+		$_SESSION['msg_error'] = "Erro ao atualizar o endereço de envio.";
+	}
+	header("Location: ".$_SERVER['PHP_SELF']);
+	exit();
+}	
+	
 
 // Obtém os dados do usuário
 $userDetails = $userProfile->getUserDetails();
@@ -82,6 +91,27 @@ $userDetails = $userProfile->getUserDetails();
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+	<style>
+.toast-custom {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 250px;
+    background-color: #333;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 5px;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+.toast-success {
+    background-color: #28a745;
+}
+.toast-error {
+    background-color: #dc3545;
+}
+</style>
 		<!-- Meta -->
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -118,9 +148,18 @@ $userDetails = $userProfile->getUserDetails();
 		<link rel="stylesheet" href="assets/css/font-awesome.min.css">
 		<link href='http://fonts.googleapis.com/css?family=Roboto:300,400,500,700' rel='stylesheet' type='text/css'>
 		<link rel="shortcut icon" href="assets/images/favicon.ico">
+		
 
 	</head>
     <body class="cnt-home">
+	<?php if (!empty($message)) : ?>
+    <div id="customToast" class="toast-custom <?php echo stripos($message, 'erro') !== false ? 'toast-error' : 'toast-success'; ?>">
+        <?php echo htmlentities($message); ?>
+    </div>
+<?php endif; ?>
+
+
+
 <header class="header-style-1">
 
 	<!-- ============================================== TOP MENU ============================================== -->
@@ -186,7 +225,7 @@ while($row=mysqli_fetch_array($query))
 
 						<div class="form-group">
 					    <label class="info-title" for="Billing State ">Estado de Cobrança  <span>*</span></label>
-			 <input type="text" class="form-control unicase-form-control text-input" id="bilingstate" name="bilingstate" value="<?php echo $row['billingState'];?>" required>
+			 <input type="text" class="form-control unicase-form-control text-input" id="billingstate" name="billingstate" value="<?php echo $row['billingState'];?>" required>
 					  </div>
 					  <div class="form-group">
 					    <label class="info-title" for="Billing City">Cidade de Cobrança <span>*</span></label>
@@ -200,7 +239,7 @@ while($row=mysqli_fetch_array($query))
 
 					  <button type="submit" name="update" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
 					</form>
-					<?php } ?>
+					<?php }?>
 				</div>	
 				<!-- already-registered-login -->		
 
@@ -306,6 +345,37 @@ while($row=mysqli_fetch_array($query))
 		   $('.show-theme-options').delay(2000).trigger('click');
 		});
 	</script>
+	<!-- jQuery (apenas uma vez) -->
+<script src="assets/js/jquery-1.11.1.min.js"></script>
+
+<!-- Toastr -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- Toastr Config -->
+<script>
+toastr.options = {
+  "closeButton": true,
+  "progressBar": true,
+  "positionClass": "toast-top-right",
+  "timeOut": "4000"
+};
+</script>
+
+<!-- Mensagens dinâmicas -->
+<script>
+$(document).ready(function() {
+	<?php if (isset($_SESSION['msg_success'])): ?>
+		toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>");
+		<?php unset($_SESSION['msg_success']); ?>
+	<?php endif; ?>
+
+	<?php if (isset($_SESSION['msg_error'])): ?>
+		toastr.error("<?php echo addslashes($_SESSION['msg_error']); ?>");
+		<?php unset($_SESSION['msg_error']); ?>
+	<?php endif; ?>
+});
+</script>
 </body>
 </html>
 <?php ?>

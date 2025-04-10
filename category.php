@@ -96,6 +96,23 @@ if (isset($_GET['pid']) && $_GET['action'] == "wishlist") {
 <html lang="en">
 	<head>
 		<!-- Meta -->
+
+  
+        <style>
+.product-image {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    padding: 10px;
+}
+.product-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+</style>
 		<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
@@ -247,7 +264,14 @@ while($row=mysqli_fetch_array($sql))
 	<div id="category" class="category-carousel hidden-xs">
 		<div class="item">	
 			<div class="image">
-				<img src="assets/images/banners/cat-banner-1.jpg" alt="" class="img-responsive">
+			<img 
+    src="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>" 
+    alt="Produto" 
+    class="img-fluid rounded shadow-sm"
+    style="max-width: 100%; height: auto; object-fit: contain; max-height: 300px;"
+    onerror="this.src='assets/images/noimage.png';"
+/>
+
 			</div>
 			<div class="container-fluid">
 				<div class="caption vertical-top text-left">
@@ -271,78 +295,89 @@ while($row=mysqli_fetch_array($sql))
 </div>
 
 				<div class="search-result-container">
-					<div id="myTabContent" class="tab-content">
-						<div class="tab-pane active " id="grid-container">
-							<div class="category-product  inner-top-vs">
-								<div class="row">									
-			<?php
-$ret=mysqli_query($con,"select * from products where category='$cid'");
-$num=mysqli_num_rows($ret);
-if($num>0)
-{
-while ($row=mysqli_fetch_array($ret)) 
-{?>							
-		<div class="col-sm-6 col-md-4 wow fadeInUp">
-			<div class="products">				
-	<div class="product">		
-		<div class="product-image">
-			<div class="image">
-				<a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><img  src="assets/images/blank.gif" data-echo="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>" alt="" width="200" height="300"></a>
-			</div><!-- /.image -->			                      		   
-		</div><!-- /.product-image -->
+    <div id="myTabContent" class="tab-content">
+        <div class="tab-pane active" id="grid-container">
+            <div class="category-product inner-top-vs">
+                
 			
-		
-		<div class="product-info text-left">
-			<h3 class="name"><a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><?php echo htmlentities($row['productName']);?></a></h3>
-			<div class="rating rateit-small"></div>
-			<div class="description"></div>
-
-			<div class="product-price">	
-				<span class="price">
-					R$ <?php echo htmlentities($row['productPrice']);?>			</span>
-										     <span class="price-before-discount">R$	<?php echo htmlentities($row['productPriceBeforeDiscount']);?></span>
-									
-			</div><!-- /.product-price -->
 			
-		</div><!-- /.product-info -->
-					<div class="cart clearfix animate-effect">
-				<div class="action">
-					<ul class="list-unstyled">
-						<li class="add-cart-button btn-group">
-						
-								<?php if($row['productAvailability']=='In Stock'){?>
-								
-							<a href="category.php?page=product&action=add&id=<?php echo $row['id']; ?>">
-							<button class="btn btn-info" type="button">Adicionar ao Carrinho</button></a>
-								<?php } else {?>
-							<div class="action" style="color:red">Fora de Estoque</div>
-					<?php } ?>
-													
-						</li>
-	                   
-		                <li class="lnk wishlist">
-							<a class="add-to-wishlist" href="category.php?pid=<?php echo htmlentities($row['id'])?>&&action=wishlist" title="Wishlist">
-								 <i class="icon fa fa-heart"></i>
-							</a>
-						</li>
+<div class="row g-4">
 
-						
-					</ul>
-				</div><!-- /.action -->
-			</div><!-- /.cart -->
-			</div>
-			</div>
-		</div>
-	  <?php } } else {?>
-	
-		<div class="col-sm-6 col-md-4 wow fadeInUp"> <h3>Nenhum produto encontrado</h3>
-		</div>
-		
-<?php } ?>	
-		
-	
-		
-		
+<?php
+$ret = mysqli_query($con, "SELECT * FROM products WHERE category='$cid'");
+$num = mysqli_num_rows($ret);
+$counter = 0;
+
+if ($num > 0) {
+    while ($row = mysqli_fetch_array($ret)) {
+        $counter++;
+?>
+    <div class="col-sm-6 col-md-4 mb-4 wow fadeInUp">
+        <div class="products">
+            <div class="product">
+                <div class="product-image">
+                    <div class="image text-center">
+                        <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                            <img 
+                                src="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>" 
+                                alt="Produto" 
+                                class="img-fluid rounded shadow-sm"
+                                style="max-height: 300px; width: auto;"
+                                onerror="this.src='assets/images/noimage.png';"
+                            />
+                        </a>
+                    </div>
+                </div>
+
+                <div class="product-info text-left">
+                    <h3 class="name">
+                        <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                            <?php echo htmlentities($row['productName']); ?>
+                        </a>
+                    </h3>
+                    <div class="product-price">	
+                        <span class="price">R$ <?php echo htmlentities($row['productPrice']); ?></span>
+                        <span class="price-before-discount">R$ <?php echo htmlentities($row['productPriceBeforeDiscount']); ?></span>
+                    </div>
+                </div>
+
+                <div class="cart clearfix animate-effect">
+                    <div class="action">
+                        <ul class="list-unstyled">
+                            <li class="add-cart-button btn-group">
+                                <?php if ($row['productAvailability'] == 'In Stock') { ?>
+                                    <a href="category.php?page=product&action=add&id=<?php echo $row['id']; ?>">
+                                        <button class="btn btn-info" type="button">Adicionar ao Carrinho</button>
+                                    </a>
+                                <?php } else { ?>
+                                    <div class="action text-danger">Fora de Estoque</div>
+                                <?php } ?>
+                            </li>
+                            <li class="lnk wishlist">
+                                <a class="add-to-wishlist" href="category.php?pid=<?php echo htmlentities($row['id']); ?>&action=wishlist" title="Wishlist">
+                                    <i class="icon fa fa-heart"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<?php
+        // Força quebra de linha a cada 3 colunas no desktop
+        if ($counter % 3 == 0) {
+            echo '<div class="w-100 d-none d-md-block"></div>';
+        }
+    }
+} else {
+    echo "<div class='col-12 text-center'><h3>Nenhum produto encontrado</h3></div>";
+}
+?>
+</div> <!-- /.row -->
+
+
 	
 		
 	
@@ -400,7 +435,8 @@ while ($row=mysqli_fetch_array($ret))
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
 
-	
+
+
 
 </body>
 </html>

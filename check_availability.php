@@ -32,4 +32,13 @@ if (!empty($_POST["email"])) {
         echo "<script>$('#submit').prop('disabled',false);</script>";
     }
 }
+
+if(!empty($_POST["contact"])) {
+    $result = mysqli_query($con,"SELECT contactno FROM users WHERE contactno='".$_POST["contact"]."'");
+    if(mysqli_num_rows($result) > 0) {
+        echo "<span style='color:red'> Número já registrado.</span>";
+    } else {
+        echo "<span style='color:green'> Número disponível.</span>";
+    }
+}
 ?>

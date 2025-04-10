@@ -40,8 +40,11 @@ if (isset($_POST['update'])) {
     $contactNo = $_POST['contactno'];
     $userId = $_SESSION['id'];
 
-    $message = $users->updateUserInfo($userId, $name, $contactNo);
-    echo "<script>alert('$message');</script>";
+    $result = $users->updateUserInfo($userId, $name, $contactNo);
+
+    $_SESSION['toast'] = $result;
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
 }
 
 // Configuração de fuso horário
@@ -53,6 +56,31 @@ $currentTime = date('d-m-Y h:i:s A', time());
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+	<style>
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 5px;
+    z-index: 9999;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    animation: fadein 0.5s, fadeout 0.5s 3.5s;
+}
+
+@keyframes fadein {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes fadeout {
+    from {opacity: 1;}
+    to {opacity: 0;}
+}
+</style>
+
 		<!-- Meta -->
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -122,6 +150,12 @@ return true;
 
 	</head>
     <body class="cnt-home">
+	<?php if (!empty($_SESSION['toast'])): ?>
+    <div id="toast" class="toast">
+        <?php echo htmlentities($_SESSION['toast']); ?>
+    </div>
+    <?php unset($_SESSION['toast']); ?>
+<?php endif; ?>
 <header class="header-style-1">
 
 	<!-- ============================================== TOP MENU ============================================== -->
@@ -171,6 +205,7 @@ return true;
 			<div class="row">		
 <h4>Informações Pessoais</h4>
 				<div class="col-md-12 col-sm-12 already-registered-login">
+					
 
 <?php
 $query=mysqli_query($con,"select * from users where id='".$_SESSION['id']."'");
@@ -190,10 +225,18 @@ while($row=mysqli_fetch_array($query))
 					    <label class="info-title" for="exampleInputEmail1">Endereço de Email<span>*</span></label>
 			 <input type="email" class="form-control unicase-form-control text-input" id="exampleInputEmail1" value="<?php echo $row['email'];?>" readonly>
 					  </div>
+					  
 					  <div class="form-group">
-					    <label class="info-title" for="Contact No.">Número de Contato. <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="contactno" name="contactno" required="required" value="<?php echo $row['contactno'];?>"  maxlength="10">
-					  </div>
+    <label class="info-title" for="contactno">Número de Contato <span>*</span></label>
+    <input type="password"
+           class="form-control unicase-form-control text-input"
+           id="contactno"
+           name="contactno"
+           required
+           value="<?php echo htmlentities($row['contactno']); ?>"
+           placeholder="(99) 99999-9999" />
+</div>
+
 					  <button type="submit" name="update" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
 					</form>
 					<?php } ?>
@@ -252,6 +295,24 @@ while($row=mysqli_fetch_array($query))
 		   $('.show-theme-options').delay(2000).trigger('click');
 		});
 	</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script>
+$(document).ready(function () {
+    $('#contactno').mask('(00) 00000-0000');
+});
+</script>
+
+<script>
+setTimeout(() => {
+    var toast = document.getElementById('toast');
+    if (toast) {
+        toast.style.display = 'none';
+    }
+}, 4000);
+</script>
+
+
 </body>
 </html>
 <?php  ?>

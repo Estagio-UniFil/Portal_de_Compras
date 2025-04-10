@@ -147,7 +147,7 @@ function valid()
 {
  if(document.register.password.value!= document.register.confirmpassword.value)
 {
-alert("Password and Confirm Password Field do not match  !!");
+alert("Os campos Senha e Confirmar Senha não correspondem  !!");
 document.register.confirmpassword.focus();
 return false;
 }
@@ -252,10 +252,27 @@ echo htmlentities($_SESSION['errmsg']="");
 	    	       <span id="user-availability-status1" style="font-size:12px;"></span>
 	  	</div>
 
-<div class="form-group">
-	    	<label class="info-title" for="contactno">Número de contato. <span>*</span></label>
-	    	<input type="text" class="form-control unicase-form-control text-input" id="contactno" name="contactno" maxlength="10" required >
-	  	</div>
+		  <div class="form-group">
+    	<label class="info-title" for="contactno">Número de Contato <span>*</span></label>
+    	<input type="password" class="form-control unicase-form-control text-input" 
+           id="contactno" name="contactno" 
+           placeholder="(43) 91234-5678"
+           title="Formato válido: (43) 91234-5678"
+           onblur="checkContactAvailability()" required>
+    	<span id="contact-status" style="font-size:12px;"></span>
+		</div>
+
+<!-- No final da página, antes de </body>: -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js"></script>
+<script>
+$(document).ready(function(){
+    $('#contactno').inputmask('(99) 99999-9999');
+});
+</script>
+
+
+
+
 
 <div class="form-group">
 	    	<label class="info-title" for="password">Senha. <span>*</span></label>
@@ -323,8 +340,28 @@ echo htmlentities($_SESSION['errmsg']="");
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+	<script>
+$(document).ready(function(){
+    $('#contactno').mask('(00) 00000-0000');
+});
+</script>
 
-	
+<script>
+function checkContactAvailability() {
+    $("#contact-status").html('<span style="color:blue;">Verificando...</span>');
+    $.ajax({
+        url: "check_contact.php",
+        method: "POST",
+        data: { contactno: $("#contactno").val() },
+        success: function(data){
+            $("#contact-status").html(data);
+        }
+    });
+}
+</script>
+
+
 
 </body>
 </html>

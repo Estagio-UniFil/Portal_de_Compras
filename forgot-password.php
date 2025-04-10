@@ -164,10 +164,19 @@ echo htmlentities($_SESSION['errmsg']="");
 		    <label class="info-title" for="exampleInputEmail1">Endereço de Email <span>*</span></label>
 		    <input type="email" name="email" class="form-control unicase-form-control text-input" id="exampleInputEmail1" required >
 		</div>
-	  	<div class="form-group">
-		    <label class="info-title" for="exampleInputPassword1">Número de Contato <span>*</span></label>
-		 <input type="text" name="contact" class="form-control unicase-form-control text-input" id="contact" required>
+
+
+		<div class="form-group">
+    	<label class="info-title" for="contactno">Número de Contato <span>*</span></label>
+    	<input type="password" class="form-control unicase-form-control text-input" 
+           id="contactno" name="contactno" 
+           placeholder="(43) 91234-5678"
+           title="Formato válido: (43) 91234-5678"
+           onblur="checkContactAvailability()" required>
+    	<span id="contact-status" style="font-size:12px;"></span>
 		</div>
+
+
 <div class="form-group">
 	    	<label class="info-title" for="password">Senha<span>*</span></label>
 	    	<input type="password" class="form-control unicase-form-control text-input" id="password" name="password"  required >
@@ -226,7 +235,11 @@ echo htmlentities($_SESSION['errmsg']="");
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
-
+	<script>
+$(document).ready(function(){
+    $('#contactno').mask('(00) 00000-0000');
+});
+</script>
 	
 
 </body>

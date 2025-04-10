@@ -14,39 +14,62 @@ class Users {
     public function updateProfile($userId, $name, $contactNumber) {
         $query = $this->con->prepare("UPDATE users SET name = ?, contactno = ? WHERE id = ?");
         $query->bind_param("ssi", $name, $contactNumber, $userId);
-
-        if ($query->execute()) {
-            return "Perfil atualizado com sucesso!";
-        } else {
-            return "Algo deu errado. Por favor, tente novamente.";
-        }
+        return $query->execute();
     }
 }
 
-// Verifica se o usuário está logado
-if (strlen($_SESSION['id']) == 0) {
-    header('location:logout.php');
-    exit();
+if (!isset($_SESSION['id']) || strlen($_SESSION['id']) == 0) {
+    header("Location: logout.php");
+    exit;
 }
 
-// Criando instância da classe Users
 $users = new Users($con);
 
-// Atualiza o perfil do usuário
-if (isset($_POST['update'])) {
+// Se o formulário foi enviado
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     $name = $_POST['fullname'];
     $contactno = $_POST['contactnumber'];
     $userId = $_SESSION['id'];
 
-    $message = $users->updateProfile($userId, $name, $contactno);
-    echo "<script>alert('$message');</script>";
-    echo "<script type='text/javascript'> document.location ='my-profile.php'; </script>";
+    if ($users->updateProfile($userId, $name, $contactno)) {
+        $_SESSION['toast_message'] = ['type' => 'success', 'text' => 'Perfil atualizado com sucesso!'];
+    } else {
+        $_SESSION['toast_message'] = ['type' => 'error', 'text' => 'Erro ao atualizar o perfil.'];
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
 }
+
+// Carrega dados do usuário
+$query = mysqli_query($con, "SELECT * FROM users WHERE id='" . $_SESSION['id'] . "'");
+$user = mysqli_fetch_assoc($query);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
+    <style>
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 250px;
+    padding: 15px 20px;
+    border-radius: 4px;
+    color: #fff;
+    z-index: 9999;
+    display: none;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.toast.success {
+    background-color: #28a745;
+}
+.toast.error {
+    background-color: #dc3545;
+}
+</style>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
@@ -63,6 +86,13 @@ if (isset($_POST['update'])) {
     </head>
 <style type="text/css"></style>
     <body>
+    <?php if (isset($_SESSION['toast_message'])): ?>
+    <div class="toast <?php echo $_SESSION['toast_message']['type']; ?>" id="toast">
+        <?php echo htmlentities($_SESSION['toast_message']['text']); ?>
+    </div>
+    <?php unset($_SESSION['toast_message']); ?>
+<?php endif; ?>
+
 <?php include_once('includes/header.php');?>
         <!-- Header-->
         <header class="bg-dark py-5">
@@ -84,7 +114,7 @@ while($result=mysqli_fetch_array($query)){
         <section class="py-5">
             <div class="container px-4  mt-5">
      
-<form method="post" name="profile">
+        <form id="updateForm" class="register-form" role="form">
      <div class="row">
          <div class="col-2">Nome Completo</div>
          <div class="col-6"><input type="text" name="fullname" value="<?php echo htmlentities($result['name']);?>" class="form-control" required ></div>
@@ -96,10 +126,24 @@ while($result=mysqli_fetch_array($query)){
           
      </div>
 
-       <div class="row mt-3">
-         <div class="col-2">Número de contato</div>
-         <div class="col-6"><input type="text" name="contactnumber" value="<?php echo htmlentities($result['contactno']);?>" pattern="[0-9]{10}" title="10 numeric characters only" class="form-control" required></div>
-     </div>
+     <div class="row mt-3">
+    <div class="col-2">Número de contato</div>
+    <div class="col-6">
+        <div class="input-group">
+            <input type="password" 
+                   name="contactnumber" 
+                   id="contactnumber" 
+                   class="form-control" 
+                   value="<?php echo htmlentities($result['contactno']);?>" 
+                   placeholder="(43) 91234-5678" 
+                   required />
+            <button type="button" class="btn btn-outline-secondary" id="toggleContact">
+                <i class="fa fa-eye" id="contactToggleIcon"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
 
 
 
@@ -120,6 +164,45 @@ while($result=mysqli_fetch_array($query)){
         <script src="js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
         <script src="js/scripts.js"></script>
+
+        <!-- jQuery Mask -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+<!-- Toggle Visualização do Contato -->
+<script>
+$(document).ready(function() {
+    // Aplica a máscara
+    $('#contactnumber').mask('(00) 00000-0000');
+
+    // Alternar visualização
+    $('#toggleContact').click(function() {
+        const input = $('#contactnumber');
+        const icon = $('#contactToggleIcon');
+
+        if (input.attr('type') === 'password') {
+            input.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            input.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    });
+});
+</script>
+
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const toast = document.getElementById("toast");
+    if (toast) {
+        toast.style.display = "block";
+        setTimeout(() => {
+            toast.style.display = "none";
+        }, 4000);
+    }
+});
+</script>
     </body>
 </html>
 <?php  ?>

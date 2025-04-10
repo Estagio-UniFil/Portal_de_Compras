@@ -91,33 +91,45 @@ header('location:payment-method.php');
 
 
 // code for billing address updation
-	if(isset($_POST['update']))
-	{
-		$baddress=$_POST['billingaddress'];
-		$bstate=$_POST['bilingstate'];
-		$bcity=$_POST['billingcity'];
-		$bpincode=$_POST['billingpincode'];
-		$query=mysqli_query($con,"update users set billingAddress='$baddress',billingState='$bstate',billingCity='$bcity',billingPincode='$bpincode' where id='".$_SESSION['id']."'");
-		if($query)
-		{
-echo "<script>alert('O endereço de cobrança foi atualizado');</script>";
-		}
-	}
+if(isset($_POST['update']))
+{
+    $baddress = $_POST['billingaddress'];
+    $bstate = $_POST['bilingstate'];
+    $bcity = $_POST['billingcity'];
+    $bpincode = $_POST['billingpincode'];
+    
+    $query = mysqli_query($con,"UPDATE users SET billingAddress='$baddress', billingState='$bstate', billingCity='$bcity', billingPincode='$bpincode' WHERE id='".$_SESSION['id']."'");
+
+    if($query) {
+        $_SESSION['msg_success'] = "Endereço de cobrança atualizado com sucesso!";
+    } else {
+        $_SESSION['msg_error'] = "Erro ao atualizar o endereço de cobrança.";
+    }
+
+    header("Location: my-cart.php");
+    exit();
+}
 
 
 // code for Shipping address updation
-	if(isset($_POST['shipupdate']))
-	{
-		$saddress=$_POST['shippingaddress'];
-		$sstate=$_POST['shippingstate'];
-		$scity=$_POST['shippingcity'];
-		$spincode=$_POST['shippingpincode'];
-		$query=mysqli_query($con,"update users set shippingAddress='$saddress',shippingState='$sstate',shippingCity='$scity',shippingPincode='$spincode' where id='".$_SESSION['id']."'");
-		if($query)
-		{
-echo "<script>alert('O endereço de entrega foi atualizado');</script>";
-		}
-	}
+if(isset($_POST['shipupdate']))
+{
+    $saddress = $_POST['shippingaddress'];
+    $sstate = $_POST['shippingstate'];
+    $scity = $_POST['shippingcity'];
+    $spincode = $_POST['shippingpincode'];
+    
+    $query = mysqli_query($con,"UPDATE users SET shippingAddress='$saddress', shippingState='$sstate', shippingCity='$scity', shippingPincode='$spincode' WHERE id='".$_SESSION['id']."'");
+
+    if($query) {
+        $_SESSION['msg_success'] = "Endereço de envio atualizado com sucesso!";
+    } else {
+        $_SESSION['msg_error'] = "Erro ao atualizar o endereço de envio.";
+    }
+
+    header("Location: my-cart.php");
+    exit();
+}
 
 ?>
 
@@ -508,5 +520,26 @@ echo "Seu carrinho de compras está vazio";
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
+	<?php if (isset($_SESSION['msg_success']) || isset($_SESSION['msg_error'])): ?>
+<script>
+    $(document).ready(function () {
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "timeOut": "4000",
+            "positionClass": "toast-top-right"
+        };
+        <?php if (isset($_SESSION['msg_success'])): ?>
+            toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>");
+            <?php unset($_SESSION['msg_success']); ?>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['msg_error'])): ?>
+            toastr.error("<?php echo addslashes($_SESSION['msg_error']); ?>");
+            <?php unset($_SESSION['msg_error']); ?>
+        <?php endif; ?>
+    });
+</script>
+<?php endif; ?>
+
 </body>
 </html>
