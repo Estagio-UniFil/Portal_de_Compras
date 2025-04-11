@@ -3,25 +3,32 @@ session_start();
 include('includes/config.php');
 error_reporting(0);
 
-if(isset($_POST['ordersubmit'])) {
-	if(strlen($_SESSION['login']) == 0) {   
-		header('location:login.php');
-		exit();
-	} else {
-		$quantity = $_POST['quantity'];
-		$pdd = $_SESSION['pid'];
-		$value = array_combine($pdd, $quantity);
+if (isset($_POST['ordersubmit'])) {
+    if (strlen($_SESSION['login']) == 0) {   
+        header('location:login.php');
+        exit();
+    }
 
-		foreach($value as $qty => $val34){
-			mysqli_query($con, "INSERT INTO orders(userId, productId, quantity) VALUES('".$_SESSION['id']."', '$qty', '$val34')");
-		}
+    if (!empty($_SESSION['cart'])) {
+        foreach ($_SESSION['cart'] as $productId => $item) {
+            $quantity = intval($item['quantity']);
+            $userId = intval($_SESSION['id']);
 
-		unset($_SESSION['cart']);
-		header('location:payment-method.php');
-		exit();
-	}
+            $stmt = $con->prepare("INSERT INTO orders(userId, productId, quantity) VALUES (?, ?, ?)");
+            $stmt->bind_param("iii", $userId, $productId, $quantity);
+            $stmt->execute();
+        }
+
+        unset($_SESSION['cart']);
+        $_SESSION['msg_success'] = "Pedido realizado com sucesso!";
+        header('location:payment-method.php');
+        exit();
+    } else {
+        $_SESSION['msg_error'] = "Seu carrinho está vazio!";
+        header('location:my-cart.php');
+        exit();
+    }
 }
-
 
 
 if (isset($_SESSION['msg_success'])): ?>
@@ -101,7 +108,7 @@ if(isset($_POST['update']))
     $query = mysqli_query($con,"UPDATE users SET billingAddress='$baddress', billingState='$bstate', billingCity='$bcity', billingPincode='$bpincode' WHERE id='".$_SESSION['id']."'");
 
     if($query) {
-        $_SESSION['msg_success'] = "Endereço de cobrança atualizado com sucesso!";
+        $_SESSION['msg_success'] = "Endereço de Cobrança atualizado com sucesso!";
     } else {
         $_SESSION['msg_error'] = "Erro ao atualizar o endereço de cobrança.";
     }
@@ -122,7 +129,7 @@ if(isset($_POST['shipupdate']))
     $query = mysqli_query($con,"UPDATE users SET shippingAddress='$saddress', shippingState='$sstate', shippingCity='$scity', shippingPincode='$spincode' WHERE id='".$_SESSION['id']."'");
 
     if($query) {
-        $_SESSION['msg_success'] = "Endereço de envio atualizado com sucesso!";
+        $_SESSION['msg_success'] = "Endereço de Envio atualizado com sucesso!";
     } else {
         $_SESSION['msg_error'] = "Erro ao atualizar o endereço de envio.";
     }
@@ -353,7 +360,7 @@ $_SESSION['pid']=$pdtid;
 		<thead>
 			<tr>
 				<th>
-					<span class="estimate-title">Endereço para Envio</span>
+					<span class="estimate-title">Endereço para Cobrança</span>
 				</th>
 			</tr>
 		</thead>
@@ -374,18 +381,56 @@ while($row=mysqli_fetch_array($query))
 
 
 
-						<div class="form-group">
-					    <label class="info-title" for="Billing State ">Estado de Cobrança <span>*</span></label>
-			 <input type="text" class="form-control unicase-form-control text-input" id="bilingstate" name="bilingstate" value="<?php echo $row['billingState'];?>" required>
-					  </div>
+					  <div class="form-group">
+    <label class="info-title" for="billingstate">Estado de Cobrança <span>*</span></label>
+    <select class="form-control unicase-form-control text-input" id="billingstate" name="billingstate" required>
+        <?php
+        $estados = [
+			"Acre" => "AC",
+            "Alagoas" => "AL",
+            "Amapá" => "AP",
+            "Amazonas" => "AM",
+            "Bahia" => "BA",
+            "Ceará" => "CE",
+            "Distrito Federal" => "DF",
+            "Espírito Santo" => "ES",
+            "Goiás" => "GO",
+            "Maranhão" => "MA",
+            "Mato Grosso" => "MT",
+            "Mato Grosso do Sul" => "MS",
+            "Minas Gerais" => "MG",
+            "Pará" => "PA",
+            "Paraíba" => "PB",
+            "Paraná" => "PR",
+            "Pernambuco" => "PE",
+            "Piauí" => "PI",
+            "Rio de Janeiro" => "RJ",
+            "Rio Grande do Norte" => "RN",
+            "Rio Grande do Sul" => "RS",
+            "Rondônia" => "RO",
+            "Roraima" => "RR",
+            "Santa Catarina" => "SC",
+            "São Paulo" => "SP",
+            "Sergipe" => "SE",
+            "Tocantins" => "TO"
+        ];
+
+        foreach ($estados as $sigla => $nome) {
+            $selected = ($row['billingState'] == $sigla) ? 'selected' : '';
+            echo "<option value=\"$sigla\" $selected>$nome</option>";
+        }
+        ?>
+    </select>
+</div>
 					  <div class="form-group">
 					    <label class="info-title" for="Billing City">Cidade de Cobrança<span>*</span></label>
 					    <input type="text" class="form-control unicase-form-control text-input" id="billingcity" name="billingcity" required="required" value="<?php echo $row['billingCity'];?>" >
 					  </div>
- <div class="form-group">
-					    <label class="info-title" for="Billing Pincode">CEP de Cobrança <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="billingpincode" name="billingpincode" required="required" value="<?php echo $row['billingPincode'];?>" >
-					  </div>
+
+					  <div class="form-group">
+					  <label class="info-title" for="Billing Pincode">CEP de Cobrança<span>*</span></label>
+                <input type="password" class="form-control unicase-form-control text-input" id = "billingpincode"  name = "billingpincode" required = "required" value="<?php echo $row['billingPincode'];?>" >
+            </div>
 
 
 					  <button type="submit" name="update" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
@@ -405,7 +450,7 @@ while($row=mysqli_fetch_array($query))
 		<thead>
 			<tr>
 				<th>
-					<span class="estimate-title">Endereço de Cobrança</span>
+					<span class="estimate-title">Endereço de Envio</span>
 				</th>
 			</tr>
 		</thead>
@@ -419,7 +464,7 @@ while($row=mysqli_fetch_array($query))
 {
 ?>
 
-<div class="form-group">
+                      <div class="form-group">
 					    <label class="info-title" for="Shipping Address">Endereço para Envio<span>*</span></label>
 					    <textarea class="form-control unicase-form-control text-input"  name="shippingaddress" required="required"><?php echo $row['shippingAddress'];?></textarea>
 					  </div>
@@ -427,17 +472,56 @@ while($row=mysqli_fetch_array($query))
 
 
 						<div class="form-group">
-					    <label class="info-title" for="Billing State ">Estado de Envio <span>*</span></label>
-			 <input type="text" class="form-control unicase-form-control text-input" id="shippingstate" name="shippingstate" value="<?php echo $row['shippingState'];?>" required>
-					  </div>
+    <label class="info-title" for="shippingstate">Estado de Envio <span>*</span></label>
+    <select class="form-control unicase-form-control text-input" id="shippingtate" name="shippingstate" required>
+        <?php
+        $estados = [
+            "Acre" => "AC",
+            "Alagoas" => "AL",
+            "Amapá" => "AP",
+            "Amazonas" => "AM",
+            "Bahia" => "BA",
+            "Ceará" => "CE",
+            "Distrito Federal" => "DF",
+            "Espírito Santo" => "ES",
+            "Goiás" => "GO",
+            "Maranhão" => "MA",
+            "Mato Grosso" => "MT",
+            "Mato Grosso do Sul" => "MS",
+            "Minas Gerais" => "MG",
+            "Pará" => "PA",
+            "Paraíba" => "PB",
+            "Paraná" => "PR",
+            "Pernambuco" => "PE",
+            "Piauí" => "PI",
+            "Rio de Janeiro" => "RJ",
+            "Rio Grande do Norte" => "RN",
+            "Rio Grande do Sul" => "RS",
+            "Rondônia" => "RO",
+            "Roraima" => "RR",
+            "Santa Catarina" => "SC",
+            "São Paulo" => "SP",
+            "Sergipe" => "SE",
+            "Tocantins" => "TO"
+        ];
+
+        foreach ($estados as $nome => $sigla) {
+            $selected = ($row['shippingState'] == $nome) ? 'selected' : '';
+            echo "<option value=\"$nome\" $selected>$sigla</option>";
+        }
+        ?>
+    </select>
+</div>
+
 					  <div class="form-group">
 					    <label class="info-title" for="Billing City">Cidade de Envio <span>*</span></label>
 					    <input type="text" class="form-control unicase-form-control text-input" id="shippingcity" name="shippingcity" required="required" value="<?php echo $row['shippingCity'];?>" >
 					  </div>
- <div class="form-group">
-					    <label class="info-title" for="Billing Pincode">CEP de envio <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="shippingpincode" name="shippingpincode" required="required" value="<?php echo $row['shippingPincode'];?>" >
-					  </div>
+
+					  <div class="form-group">
+					  <label class="info-title" for="Shipping Pincode">CEP de Envio<span>*</span></label>
+                <input type="password" class="form-control unicase-form-control text-input" id = "shippingpincode"  name = "shippingpincode" required = "required" value="<?php echo $row['shippingPincode'];?>" >
+            </div>
 
 
 					  <button type="submit" name="shipupdate" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
@@ -540,6 +624,17 @@ echo "Seu carrinho de compras está vazio";
     });
 </script>
 <?php endif; ?>
+
+<script>
+function mascaraCep(input) {
+    let value = input.value.replace(/\D/g, ''); // remove tudo que não é número
+    if (value.length > 5) {
+        input.value = value.slice(0, 5) + '-' + value.slice(5, 8);
+    } else {
+        input.value = value;
+    }
+}
+</script>
 
 </body>
 </html>

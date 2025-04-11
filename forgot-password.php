@@ -235,7 +235,10 @@ echo htmlentities($_SESSION['errmsg']="");
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
-	<script>
+<script src="assets/js/jquery-1.11.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+<script>
 $(document).ready(function(){
     $('#contactno').mask('(00) 00000-0000');
 });

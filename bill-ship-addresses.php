@@ -55,7 +55,7 @@ if (isset($_POST['update'])) {
     $billingPincode = $_POST['billingpincode'] ?? '';
 
     if ($userProfile->updateBillingAddress($billingAddress, $billingState, $billingCity, $billingPincode)) {
-        $_SESSION['msg_success'] = "Endereço de cobrança atualizado com sucesso!";
+        $_SESSION['msg_success'] = "Endereço de Cobrança atualizado com sucesso!";
     } else {
         $_SESSION['msg_error'] = "Erro ao atualizar o endereço de cobrança.";
     }
@@ -75,7 +75,7 @@ if (isset($_POST['shipupdate'])) {
     $shippingPincode = $_POST['shippingpincode'] ?? '';
 
 	if ($userProfile->updateShippingAddress($shippingAddress, $shippingState, $shippingCity, $shippingPincode)) {
-		$_SESSION['msg_success'] = "Endereço de envio atualizado com sucesso!";
+		$_SESSION['msg_success'] = "Endereço de Envio atualizado com sucesso!";
 	} else {
 		$_SESSION['msg_error'] = "Erro ao atualizar o endereço de envio.";
 	}
@@ -223,18 +223,66 @@ while($row=mysqli_fetch_array($query))
 
 
 
-						<div class="form-group">
-					    <label class="info-title" for="Billing State ">Estado de Cobrança  <span>*</span></label>
-			 <input type="text" class="form-control unicase-form-control text-input" id="billingstate" name="billingstate" value="<?php echo $row['billingState'];?>" required>
-					  </div>
+					  <div class="form-group">
+    <label class="info-title" for="billingstate">Estado de Cobrança <span>*</span></label>
+    <select class="form-control unicase-form-control text-input" id="billingstate" name="billingstate" required>
+        <?php
+        $estados = [
+			"Acre" => "AC",
+            "Alagoas" => "AL",
+            "Amapá" => "AP",
+            "Amazonas" => "AM",
+            "Bahia" => "BA",
+            "Ceará" => "CE",
+            "Distrito Federal" => "DF",
+            "Espírito Santo" => "ES",
+            "Goiás" => "GO",
+            "Maranhão" => "MA",
+            "Mato Grosso" => "MT",
+            "Mato Grosso do Sul" => "MS",
+            "Minas Gerais" => "MG",
+            "Pará" => "PA",
+            "Paraíba" => "PB",
+            "Paraná" => "PR",
+            "Pernambuco" => "PE",
+            "Piauí" => "PI",
+            "Rio de Janeiro" => "RJ",
+            "Rio Grande do Norte" => "RN",
+            "Rio Grande do Sul" => "RS",
+            "Rondônia" => "RO",
+            "Roraima" => "RR",
+            "Santa Catarina" => "SC",
+            "São Paulo" => "SP",
+            "Sergipe" => "SE",
+            "Tocantins" => "TO"
+        ];
+
+        foreach ($estados as $sigla => $nome) {
+            $selected = ($row['billingState'] == $sigla) ? 'selected' : '';
+            echo "<option value=\"$sigla\" $selected>$nome</option>";
+        }
+        ?>
+    </select>
+</div>
 					  <div class="form-group">
 					    <label class="info-title" for="Billing City">Cidade de Cobrança <span>*</span></label>
 					    <input type="text" class="form-control unicase-form-control text-input" id="billingcity" name="billingcity" required="required" value="<?php echo $row['billingCity'];?>" >
 					  </div>
- <div class="form-group">
-					    <label class="info-title" for="Billing Pincode">CEP de Cobrança <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="billingpincode" name="billingpincode" required="required" value="<?php echo $row['billingPincode'];?>" >
-					  </div>
+
+	<div class="form-group">
+    <label class="info-title" for="billingpincode">CEP de Cobrança <span>*</span></label>
+    <input 
+        type="password" 
+        class="form-control unicase-form-control text-input" 
+        id="billingpincode" 
+        name="billingpincode" 
+        required 
+        value="<?php echo $row['billingPincode']; ?>" 
+        pattern="\d{5}-\d{3}" 
+        title="Digite o CEP no formato 00000-000"
+        oninput="mascaraCep(this)"
+    >
+</div>
 
 
 					  <button type="submit" name="update" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
@@ -271,23 +319,71 @@ while($row=mysqli_fetch_array($query))
 					<form class="register-form" role="form" method="post">
 <div class="form-group">
 					    <label class="info-title" for="Shipping Address">Endereço de Envio<span>*</span></label>
-					    <textarea class="form-control unicase-form-control text-input" " name="shippingaddress" required="required"><?php echo $row['shippingAddress'];?></textarea>
+					    <textarea class="form-control unicase-form-control text-input"  name="shippingaddress" required="required"><?php echo $row['shippingAddress'];?></textarea>
 					  </div>
 
 
 
-						<div class="form-group">
-					    <label class="info-title" for="Billing State ">Estado de Envio  <span>*</span></label>
-			 <input type="text" class="form-control unicase-form-control text-input" id="shippingstate" name="shippingstate" value="<?php echo $row['shippingState'];?>" required>
-					  </div>
 					  <div class="form-group">
-					    <label class="info-title" for="Billing City">Cidade de Envip <span>*</span></label>
+    <label class="info-title" for="shippingstate">Estado de Envio <span>*</span></label>
+    <select class="form-control unicase-form-control text-input" id="shippingstate" name="shippingstate" required>
+        <?php
+        $estados = [
+            "Acre" => "AC",
+            "Alagoas" => "AL",
+            "Amapá" => "AP",
+            "Amazonas" => "AM",
+            "Bahia" => "BA",
+            "Ceará" => "CE",
+            "Distrito Federal" => "DF",
+            "Espírito Santo" => "ES",
+            "Goiás" => "GO",
+            "Maranhão" => "MA",
+            "Mato Grosso" => "MT",
+            "Mato Grosso do Sul" => "MS",
+            "Minas Gerais" => "MG",
+            "Pará" => "PA",
+            "Paraíba" => "PB",
+            "Paraná" => "PR",
+            "Pernambuco" => "PE",
+            "Piauí" => "PI",
+            "Rio de Janeiro" => "RJ",
+            "Rio Grande do Norte" => "RN",
+            "Rio Grande do Sul" => "RS",
+            "Rondônia" => "RO",
+            "Roraima" => "RR",
+            "Santa Catarina" => "SC",
+            "São Paulo" => "SP",
+            "Sergipe" => "SE",
+            "Tocantins" => "TO"
+        ];
+
+        foreach ($estados as $nome => $sigla) {
+            $selected = ($row['shippingState'] == $nome) ? 'selected' : '';
+            echo "<option value=\"$nome\" $selected>$sigla</option>";
+        }
+        ?>
+    </select>
+</div>
+					  <div class="form-group">
+					    <label class="info-title" for="Billing City">Cidade de Envio <span>*</span></label>
 					    <input type="text" class="form-control unicase-form-control text-input" id="shippingcity" name="shippingcity" required="required" value="<?php echo $row['shippingCity'];?>" >
 					  </div>
+
  <div class="form-group">
-					    <label class="info-title" for="Billing Pincode">CEP de Envio <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="shippingpincode" name="shippingpincode" required="required" value="<?php echo $row['shippingPincode'];?>" >
-					  </div>
+    <label class="info-title" for="shippingpincode">CEP de Envio <span>*</span></label>
+    <input 
+        type="password" 
+        class="form-control unicase-form-control text-input" 
+        id="shippingpincode" 
+        name="shippingpincode" 
+        required 
+        value="<?php echo $row['shippingPincode']; ?>" 
+        pattern="\d{5}-\d{3}" 
+        title="Digite o CEP no formato 00000-000"
+        oninput="mascaraCep(this)"
+    >
+</div>
 
 
 					  <button type="submit" name="shipupdate" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
@@ -376,6 +472,18 @@ $(document).ready(function() {
 	<?php endif; ?>
 });
 </script>
+
+<script>
+function mascaraCep(input) {
+    let value = input.value.replace(/\D/g, ''); // remove tudo que não é número
+    if (value.length > 5) {
+        input.value = value.slice(0, 5) + '-' + value.slice(5, 8);
+    } else {
+        input.value = value;
+    }
+}
+</script>
+
 </body>
 </html>
 <?php ?>

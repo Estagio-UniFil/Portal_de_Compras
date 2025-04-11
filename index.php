@@ -1,27 +1,47 @@
-<?php session_start();
+<?php
+session_start();
+ if (isset($_SESSION['success_msg'])): ?>
+	<div class="toast success-toast" id="toast">
+	  <?= $_SESSION['success_msg']; unset($_SESSION['success_msg']); ?>
+	</div>
+  <?php endif; ?>
+  
+  <?php if (isset($_SESSION['error_msg'])): ?>
+	<div class="toast error-toast" id="toast">
+	  <?= $_SESSION['error_msg']; unset($_SESSION['error_msg']); ?>
+	</div>
+  <?php endif; 
+
 error_reporting(0);
 include_once('includes/config.php');
-if(isset($_GET['action']) && $_GET['action']=="add"){
-	$id=intval($_GET['id']);
-	if(isset($_SESSION['cart'][$id])){
-		$_SESSION['cart'][$id]['quantity']++;
-	}else{
-		$sql_p="SELECT * FROM products WHERE id={$id}";
-		$query_p=mysqli_query($con,$sql_p);
-		if(mysqli_num_rows($query_p)!=0){
-			$row_p=mysqli_fetch_array($query_p);
-			$_SESSION['cart'][$row_p['id']]=array("quantity" => 1, "price" => $row_p['productPrice']);
-		
-		}else{
-			$message="O ID do produto é inválido";
-		}
-	}
-		echo "<script>alert('O Produto foi adicionado ao carrinho')</script>";
-		echo "<script type='text/javascript'> document.location ='my-cart.php'; </script>";
+
+if (isset($_GET['action']) && $_GET['action'] == "add") {
+    $id = intval($_GET['id']);
+
+    if (isset($_SESSION['cart'][$id])) {
+        $_SESSION['cart'][$id]['quantity']++;
+    } else {
+        $sql_p = "SELECT * FROM products WHERE id={$id}";
+        $query_p = mysqli_query($con, $sql_p);
+        if (mysqli_num_rows($query_p) != 0) {
+            $row_p = mysqli_fetch_array($query_p);
+            $_SESSION['cart'][$row_p['id']] = array(
+                "quantity" => 1,
+                "price" => $row_p['productPrice']
+            );
+        } else {
+            $_SESSION['error_msg'] = "O ID do produto é inválido";
+            header("Location: my-cart.php");
+            exit;
+        }
+    }
+
+    $_SESSION['success_msg'] = "Produto adicionado ao carrinho!";
+    header("Location: index.php");
+    exit;
 }
-
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -280,7 +300,32 @@ while ($row=mysqli_fetch_array($ret))
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
 
-	
+	<style>
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 9999;
+  opacity: 1;
+  animation: fadeout 4s forwards;
+}
+.success-toast {
+  background-color: #4CAF50;
+}
+.error-toast {
+  background-color: #e53935;
+}
+@keyframes fadeout {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; display: none; }
+}
+</style>
 
 </body>
 </html>

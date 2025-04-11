@@ -22,7 +22,7 @@ else{
 	    <meta name="keywords" content="MediaCenter, Template, eCommerce">
 	    <meta name="robots" content="all">
 
-	    <title>Order History</title>
+	    <title>Histórico de Pedidos</title>
 	    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
 	    <link rel="stylesheet" href="assets/css/main.css">
 	    <link rel="stylesheet" href="assets/css/red.css">
@@ -136,8 +136,11 @@ while($row=mysqli_fetch_array($query))
 					<td class="cart-product-sub-total"><?php echo $row['odate']; ?>  </td>
 					
 					<td>
- <a href="javascript:void(0);" onClick="popUpWindow('track-order.php?oid=<?php echo htmlentities($row['orderid']);?>');" title="Rastreat Pedido">
-					Rastrear</td>
+					<a href="#" 
+   class="open-modal" 
+   data-orderid="<?= htmlentities($row['orderid']); ?>">
+   Rastrear
+</a>
 				</tr>
 <?php $cnt=$cnt+1;} ?>
 				
@@ -190,6 +193,88 @@ while($row=mysqli_fetch_array($query))
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
+	<div id="modal-overlay" class="modal-overlay">
+  <div class="modal-box">
+    <span class="close-btn" id="close-modal">&times;</span>
+    <h2>Rastreamento do Pedido</h2>
+    <div id="modal-content">
+      Carregando...
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-box {
+  background: white;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 22px;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const modal = document.getElementById('modal-overlay');
+  const modalContent = document.getElementById('modal-content');
+  const closeModalBtn = document.getElementById('close-modal');
+
+  document.querySelectorAll('.open-modal').forEach(button => {
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      const orderId = this.getAttribute('data-orderid');
+      modal.style.display = 'flex';
+      modalContent.innerHTML = 'Carregando...';
+
+      fetch('track-order.php?oid=' + orderId)
+        .then(res => res.text())
+        .then(html => {
+          modalContent.innerHTML = html;
+        })
+        .catch(err => {
+          modalContent.innerHTML = '<p style="color:red;">Erro ao carregar rastreamento.</p>';
+        });
+    });
+  });
+
+  closeModalBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  // Fecha ao clicar fora do modal
+  window.addEventListener('click', function (e) {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+});
+</script>
+
 </body>
 </html>
 <?php } ?>
