@@ -161,19 +161,42 @@ if (isset($_GET['pid']) && $_GET['action'] == "wishlist") {
 	            <!-- ================================== TOP NAVIGATION ================================== -->
 <div class="side-menu animate-dropdown outer-bottom-xs">       
 <div class="side-menu animate-dropdown outer-bottom-xs">
-    <div class="head"><i class="icon fa fa-align-justify fa-fw"></i>Subcateogorias</div>        
+    <div class="head"><i class="icon fa fa-align-justify fa-fw"></i>Subcategorias</div>        
     <nav class="yamm megamenu-horizontal" role="navigation">
   
-        <ul class="nav">
-            <li class="dropdown menu-item">
-              <?php $sql=mysqli_query($con,"select id,subcategory  from subcategory");
+	<ul class="nav">
+    <li class="dropdown menu-item">
+        <?php 
+      $busca = "";
+	  if (isset($_POST['product'])) {
+		  $busca = mysqli_real_escape_string($con, $_POST['product']);
+	  
 
-while($row=mysqli_fetch_array($sql))
-{
-    ?>
-                <a href="sub-category.php?scid=<?php echo $row['id'];?>" class="dropdown-toggle"><i class="icon fa fa-desktop fa-fw"></i>
-                <?php echo $row['subcategory'];?></a>
-                <?php }?>
+		  $query = "
+		  SELECT DISTINCT 
+			  subcategory.id AS sid,
+			  subcategory.subcategory
+		  FROM products
+		  JOIN subcategory ON products.subCategory = subcategory.id
+		  JOIN category ON products.category = category.id
+		  WHERE 
+			  products.productName LIKE '%$busca%' OR 
+			  subcategory.subcategory LIKE '%$busca%' OR 
+			  category.categoryName LIKE '%$busca%'
+	  ";
+        }
+    
+
+		$result = mysqli_query($con, $query);
+		while($row = mysqli_fetch_array($result)) {
+		?>
+			<a href="sub-category.php?scid=<?php echo $row['sid']; ?>" class="dropdown-toggle">
+				<i class="icon fa fa-desktop fa-fw"></i>
+				<?php echo $row['subcategory']; ?>
+			</a>
+		<?php } ?>
+    </li>
+</ul>
                         
 </li>
 </ul>
@@ -241,7 +264,25 @@ while($row=mysqli_fetch_array($sql))
 							<div class="category-product  inner-top-vs">
 								<div class="row">									
 			<?php
-$ret=mysqli_query($con,"select * from products where productName like '$find'");
+if (isset($_POST['product'])) {
+    $find = mysqli_real_escape_string($con, $_POST['product']);
+    $ret = mysqli_query($con, "SELECT * FROM products WHERE productName LIKE '%$find%'");
+} else {
+    $ret = mysqli_query($con, "SELECT * FROM products");
+}
+if (isset($_POST['category'])){
+	$find = mysqli_real_escape_string(mysql:$con, string: $_POST['category']);
+	$ret = mysqli_query($con, "SELECT * FROM category WHERE categoryName LIKE '%$find%'");
+}else{
+	$ret = mysqli_query($con, "SELECT * FROM category");
+}
+if (isset($_POST['subcategory'])) {
+    $find = mysqli_real_escape_string($con, $_POST['subcategory']);
+    $ret = mysqli_query($con, "SELECT * FROM products WHERE subcategory LIKE '%$find%'");
+} else {
+    $ret = mysqli_query($con, "SELECT * FROM subcategoty");
+}
+
 $num=mysqli_num_rows($ret);
 if($num>0)
 {
@@ -300,6 +341,7 @@ while ($row=mysqli_fetch_array($ret))
 			</div>
 		</div>
 	  <?php } } else {?>
+		
 	
 		<div class="col-sm-6 col-md-4 wow fadeInUp"> <h3>Nenhum produto encontrado</h3>
 		</div>
