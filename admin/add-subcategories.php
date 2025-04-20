@@ -1,22 +1,43 @@
-<?php session_start();
+<?php
+namespace Models;
+session_start();
 include_once('includes/config.php');
 error_reporting(0);
-if(strlen( $_SESSION["aid"])==0)
-{   
-header('location:logout.php');
-} else {
-//For Adding Sub-categories
-if(isset($_POST['submit']))
-{
-$category=$_POST['category'];
-$subcat=$_POST['subcategory'];
-$createdby=$_SESSION['aid'];
-$sql=mysqli_query($con,"insert into subcategory(categoryid,subcategoryName,createdBy) values('$category','$subcat','$createdby')");
-echo "<script>alert('Subcategoria adicionada com sucesso');</script>";
-echo "<script>window.location.href='manage-subcategories.php'</script>";
 
+if (strlen($_SESSION["aid"]) == 0) {
+    header('location:logout.php');
+    exit();
 }
 
+// Classe Products com método para adicionar subcategoria
+class Products {
+    private $con;
+
+    public function __construct($dbConnection) {
+        $this->con = $dbConnection;
+    }
+
+    public function addSubcategory($categoryId, $subcategoryName, $createdBy) {
+        $stmt = $this->con->prepare("INSERT INTO subcategory (categoryid, subcategoryName, createdBy) VALUES (?, ?, ?)");
+        $stmt->bind_param("isi", $categoryId, $subcategoryName, $createdBy);
+        return $stmt->execute();
+    }
+}
+
+// Se o formulário foi enviado
+if (isset($_POST['submit'])) {
+    $category = $_POST['category'];
+    $subcat = $_POST['subcategory'];
+    $createdBy = $_SESSION['aid'];
+
+    $product = new Products($con);
+    if ($product->addSubcategory($category, $subcat, $createdBy)) {
+        echo "<script>alert('Subcategoria adicionada com sucesso');</script>";
+        echo "<script>window.location.href='manage-subcategories.php'</script>";
+    } else {
+        echo "<script>alert('Erro ao adicionar subcategoria.');</script>";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -82,4 +103,4 @@ while($row=mysqli_fetch_array($query))
         <script src="js/scripts.js"></script>
     </body>
 </html>
-<?php } ?>
+<?php  ?>

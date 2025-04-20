@@ -1,41 +1,97 @@
-<?php session_start();
+<?php
+namespace Models;
+session_start();
 include_once('includes/config.php');
-if(strlen( $_SESSION["aid"])==0)
-{   
-header('location:logout.php');
-} else {
+error_reporting(0);
 
-//For Adding Products
-if(isset($_POST['submit']))
-{
-    $category=$_POST['category'];
-    $subcat=$_POST['subcategory'];
-    $productname=$_POST['productName'];
-    $productcompany=$_POST['productCompany'];
-    $productprice=$_POST['productprice'];
-    $productpricebd=$_POST['productpricebd'];
-    $productdescription=$_POST['productDescription'];
-    $productscharge=$_POST['productShippingcharge'];
-    $productavailability=$_POST['productAvailability'];
-    $productimage1=$_FILES["productimage1"]["name"];
-    $productimage2=$_FILES["productimage2"]["name"];
-    $productimage3=$_FILES["productimage3"]["name"];
-$extension1 = substr($productimage1,strlen($productimage1)-4,strlen($productimage1));
-$extension2 = substr($productimage2,strlen($productimage2)-4,strlen($productimage2));
-$extension3 = substr($productimage3,strlen($productimage3)-4,strlen($productimage3));
-//Renaming the  image file
-$imgnewfile1=md5($productimage1.time()).$extension1;
-$imgnewfile2=md5($productimage2.time()).$extension2;
-$imgnewfile3=md5($productimage3.time()).$extension3;
-$addedby=$_SESSION['aid'];
+if (strlen($_SESSION["aid"]) == 0) {
+    header('location:logout.php');
+    exit();
+}
 
+// Classe Products com todas as funcionalidades
+class Products {
+    private $con;
 
-    move_uploaded_file($_FILES["productimage1"]["tmp_name"],"productimages/".$imgnewfile1);
-    move_uploaded_file($_FILES["productimage2"]["tmp_name"],"productimages/".$imgnewfile2);
-    move_uploaded_file($_FILES["productimage3"]["tmp_name"],"productimages/".$imgnewfile3);
-$sql=mysqli_query($con,"insert into products(category,subCategory,productName,productCompany,productPrice,productDescription,shippingCharge,productAvailability,productImage1,productImage2,productImage3,productPriceBeforeDiscount,addedBy) values('$category','$subcat','$productname','$productcompany','$productprice','$productdescription','$productscharge','$productavailability','$imgnewfile1','$imgnewfile2','$imgnewfile3','$productpricebd','$addedby')");
-echo "<script>alert('Product Added added successfully');</script>";
-echo "<script>window.location.href='manage-subcategories.php'</script>";
+    public function __construct($dbConnection) {
+        $this->con = $dbConnection;
+    }
+
+    private function renameImage($filename) {
+        $extension = substr($filename, -4);
+        return md5($filename . time()) . $extension;
+    }
+
+    private function uploadImages($files) {
+        $uploaded = [];
+
+        for ($i = 1; $i <= 3; $i++) {
+            $key = "productimage{$i}";
+            $originalName = $files[$key]["name"];
+            $newName = $this->renameImage($originalName);
+            move_uploaded_file($files[$key]["tmp_name"], "productimages/" . $newName);
+            $uploaded[] = $newName;
+        }
+
+        return $uploaded;
+    }
+
+    public function addProduct($data, $files, $addedBy) {
+        list($img1, $img2, $img3) = $this->uploadImages($files);
+
+        $stmt = $this->con->prepare("
+            INSERT INTO products (
+                category, subCategory, productName, productCompany, 
+                productPrice, productDescription, shippingCharge, 
+                productAvailability, productImage1, productImage2, productImage3, 
+                productPriceBeforeDiscount, addedBy
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt->bind_param(
+            "iissdssssssdi",
+            $data['category'],
+            $data['subcategory'],
+            $data['productName'],
+            $data['productCompany'],
+            $data['productprice'],
+            $data['productDescription'],
+            $data['productShippingcharge'],
+            $data['productAvailability'],
+            $img1,
+            $img2,
+            $img3,
+            $data['productpricebd'],
+            $addedBy
+        );
+
+        return $stmt->execute();
+    }
+}
+
+// Se o formulário foi enviado
+if (isset($_POST['submit'])) {
+    $addedBy = $_SESSION['aid'];
+
+    $productData = [
+        'category' => $_POST['category'],
+        'subcategory' => $_POST['subcategory'],
+        'productName' => $_POST['productName'],
+        'productCompany' => $_POST['productCompany'],
+        'productprice' => $_POST['productprice'],
+        'productpricebd' => $_POST['productpricebd'],
+        'productDescription' => $_POST['productDescription'],
+        'productShippingcharge' => $_POST['productShippingcharge'],
+        'productAvailability' => $_POST['productAvailability']
+    ];
+
+    $product = new Products($con);
+
+    if ($product->addProduct($productData, $_FILES, $addedBy)) {
+        echo "<script>alert('Produto adicionado com Sucesso');</script>";
+        echo "<script>window.location.href='manage-subcategories.php'</script>";
+    } else {
+        echo "<script>alert('Erro ao adicionar o produto.');</script>";
+    }
 }
 ?>
 
@@ -195,4 +251,4 @@ while($row=mysqli_fetch_array($query))
         <script src="js/scripts.js"></script>
     </body>
 </html>
-<?php } ?>
+<?php  ?>

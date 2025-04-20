@@ -12,7 +12,7 @@ if(isset($_POST['submit']))
 	$category=$_POST['category'];
 	$subcat=$_POST['subcategory'];
 $sql=mysqli_query($con,"insert into subcategory(categoryid,subcategory) values('$category','$subcat')");
-$_SESSION['msg']="SubCategory Created !!";
+$_SESSION['msg']="Subcategoria Criada !!";
 
 }
 

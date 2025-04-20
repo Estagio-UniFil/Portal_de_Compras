@@ -648,9 +648,9 @@ while($rvw=mysqli_fetch_array($qry))
 													<div class="review-title"><span class="summary"><?php echo htmlentities($rvw['summary']);?></span><span class="date"><i class="fa fa-calendar"></i><span><?php echo htmlentities($rvw['reviewDate']);?></span></span></div>
 
 													<div class="text">"<?php echo htmlentities($rvw['review']);?>"</div>
-													<div class="text"><b>Qualidade :</b>  <?php echo htmlentities($rvw['quality']);?> Star</div>
-													<div class="text"><b>Preço :</b>  <?php echo htmlentities($rvw['price']);?> Star</div>
-													<div class="text"><b>Valor :</b>  <?php echo htmlentities($rvw['value']);?> Star</div>
+													<div class="text"><b>Qualidade :</b>  <?php echo htmlentities($rvw['quality']);?> Estrela</div>
+													<div class="text"><b>Preço :</b>  <?php echo htmlentities($rvw['price']);?> Estrela</div>
+													<div class="text"><b>Valor :</b>  <?php echo htmlentities($rvw['value']);?> Estrela</div>
                                                 <div class="author m-t-15"><i class="fa fa-pencil-square-o"></i> <span class="name"><?php echo htmlentities($rvw['name']);?></span></div>													</div>
 											
 											</div>
@@ -667,11 +667,11 @@ while($rvw=mysqli_fetch_array($qry))
 														<thead>
 															<tr>
 																<th class="cell-label">&nbsp;</th>
-																<th>1 star</th>
-																<th>2 stars</th>
-																<th>3 stars</th>
-																<th>4 stars</th>
-																<th>5 stars</th>
+																<th>1 Estrela</th>
+																<th>2 Estrelas</th>
+																<th>3 Estrelas</th>
+																<th>4 Estrelas</th>
+																<th>5 Estrelas</th>
 															</tr>
 														</thead>	
 														<tbody>

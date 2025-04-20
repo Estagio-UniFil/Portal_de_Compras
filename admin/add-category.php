@@ -1,24 +1,46 @@
-<?php session_start();
+<?php
+namespace Models;
+session_start();
 include_once('includes/config.php');
 error_reporting(0);
-if(strlen( $_SESSION["aid"])==0)
-{   
-header('location:logout.php');
-} else {
 
-//For Adding categories
-if(isset($_POST['submit']))
-{
-$category=$_POST['category'];
-$description=$_POST['description'];
-$createdby=$_SESSION['aid'];
-$sql=mysqli_query($con,"insert into category(categoryName,categoryDescription,createdBy) values('$category','$description','$createdby')");
-echo "<script>alert('Categoria foi adicionada com Sucesso');</script>";
-echo "<script>window.location.href='manage-categories.php'</script>";
-
+// Verifica se o admin está logado
+if (strlen($_SESSION["aid"]) == 0) {
+    header('location:logout.php');
+    exit();
 }
 
+// Classe para manipular categorias
+class Category {
+    private $con;
+
+    public function __construct($dbConnection) {
+        $this->con = $dbConnection;
+    }
+
+    public function addCategory($name, $description, $createdBy) {
+        $stmt = $this->con->prepare("INSERT INTO category (categoryName, categoryDescription, createdBy) VALUES (?, ?, ?)");
+        $stmt->bind_param("ssi", $name, $description, $createdBy);
+        return $stmt->execute();
+    }
+}
+
+// Processa o envio do formulário
+if (isset($_POST['submit'])) {
+    $categoryName = $_POST['category'];
+    $categoryDescription = $_POST['description'];
+    $createdBy = $_SESSION['aid'];
+
+    $category = new Category($con);
+    if ($category->addCategory($categoryName, $categoryDescription, $createdBy)) {
+        echo "<script>alert('Categoria foi adicionada com Sucesso');</script>";
+        echo "<script>window.location.href='manage-categories.php'</script>";
+    } else {
+        echo "<script>alert('Erro ao adicionar categoria');</script>";
+    }
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -74,4 +96,4 @@ echo "<script>window.location.href='manage-categories.php'</script>";
         
     </body>
 </html>
-<?php } ?>
+<?php  ?>
