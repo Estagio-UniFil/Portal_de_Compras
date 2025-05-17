@@ -10,7 +10,7 @@
 				<ul class="nav nav-checkout-progress list-unstyled">
 					<li><a href="my-account.php">Minha Conta</a></li>
 					<li><a href="bill-ship-addresses.php">Endereço de Cobrança/ Endereço de Envio</a></li>
-					<li><a href="order-history.php">Histórico de Ordens</a></li>
+					<li><a href="order-history.php">Histórico de Compras</a></li>
 					<li><a href="pending-orders.php">Pagamentos</a></li>
 				</ul>		
 			</div>

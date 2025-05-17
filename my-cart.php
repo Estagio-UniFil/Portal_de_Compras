@@ -1,36 +1,49 @@
 <?php
 session_start();
 include('includes/config.php');
-error_reporting(0);
 
-if (isset($_POST['ordersubmit'])) {
-    if (strlen($_SESSION['login']) == 0) {   
-        header('location:login.php');
-        exit();
-    }
+// --- Atualizar endereço de envio ---
+if (isset($_POST['shipupdate'])) {
+    $shippingAddress = $_POST['shippingaddress'] ?? '';
+    $shippingState = $_POST['shippingstate'] ?? '';
+    $shippingCity = $_POST['shippingcity'] ?? '';
+    $shippingPincode = $_POST['shippingpincode'] ?? '';
 
-    if (!empty($_SESSION['cart'])) {
-        foreach ($_SESSION['cart'] as $productId => $item) {
-            $quantity = intval($item['quantity']);
-            $userId = intval($_SESSION['id']);
+    $userId = $_SESSION['id'];
+    $stmt = $con->prepare("UPDATE users SET shippingAddress=?, shippingState=?, shippingCity=?, shippingPincode=? WHERE id=?");
+    $stmt->bind_param("ssssi", $shippingAddress, $shippingState, $shippingCity, $shippingPincode, $userId);
+    $stmt->execute();
 
-            $stmt = $con->prepare("INSERT INTO orders(userId, productId, quantity) VALUES (?, ?, ?)");
-            $stmt->bind_param("iii", $userId, $productId, $quantity);
-            $stmt->execute();
-        }
-
-        unset($_SESSION['cart']);
-        $_SESSION['msg_success'] = "Pedido realizado com sucesso!";
-        header('location:payment-method.php');
-        exit();
-    } else {
-        $_SESSION['msg_error'] = "Seu carrinho está vazio!";
-        header('location:my-cart.php');
-        exit();
-    }
+    $_SESSION['msg_success'] = "Endereço de envio atualizado com sucesso!";
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit();
 }
 
+// --- Atualizar endereço de cobrança ---
+if (isset($_POST['update'])) {
+    $name = trim($_POST['name'] ?? '');
+    $address = trim($_POST['billingaddress'] ?? '');
+    $state = trim($_POST['billingstate'] ?? '');
+    $city = trim($_POST['billingcity'] ?? '');
+    $pincode = trim($_POST['billingpincode'] ?? '');
 
+    if (!preg_match("/^[A-Za-zÀ-ÿ\s\-]+$/", $city)) {
+        $_SESSION['msg_error'] = "Nome de cidade inválido. Use apenas letras e espaços.";
+        header("Location: " . $_SERVER['REQUEST_URI']);
+        exit();
+    }
+
+    $userId = $_SESSION['id'];
+    $stmt = $con->prepare("UPDATE users SET name=?, billingAddress=?, billingState=?, billingCity=?, billingPincode=? WHERE id=?");
+    $stmt->bind_param("sssssi", $name, $address, $state, $city, $pincode, $userId);
+    $stmt->execute();
+
+    $_SESSION['msg_success'] = "Endereço de cobrança atualizado com sucesso!";
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit();
+}
+
+// --- Atualizar quantidades no carrinho ---
 if (isset($_SESSION['msg_success'])): ?>
 	<script>
 	  window.addEventListener('DOMContentLoaded', function() {
@@ -63,82 +76,37 @@ if (isset($_POST['remove_selected']) && isset($_POST['remove_code']) && !empty($
 	header("Location: my-cart.php");
 	exit();
 }
-// code for insert product in order table
 
 
-if(isset($_POST['ordersubmit'])) 
-{
-	
-if(strlen($_SESSION['login'])==0)
-    {   
-header('location:login.php');
-}
-else{
-
-	$quantity=$_POST['quantity'];
-	$pdd=$_SESSION['pid'];
-	$value=array_combine($pdd,$quantity);
-
-
-		foreach($value as $qty=> $val34){
-
-			unset($_SESSION['cart']);
-
-			header('location:payment-method.php');
-		exit();
-	}
-}
-
-
-
-mysqli_query($con,"insert into orders(userId,productId,quantity) values('".$_SESSION['id']."','$qty','$val34')");
-header('location:payment-method.php');
-}
-
-
-
-// code for billing address updation
-if(isset($_POST['update']))
-{
-    $baddress = $_POST['billingaddress'];
-    $bstate = $_POST['bilingstate'];
-    $bcity = $_POST['billingcity'];
-    $bpincode = $_POST['billingpincode'];
-    
-    $query = mysqli_query($con,"UPDATE users SET billingAddress='$baddress', billingState='$bstate', billingCity='$bcity', billingPincode='$bpincode' WHERE id='".$_SESSION['id']."'");
-
-    if($query) {
-        $_SESSION['msg_success'] = "Endereço de Cobrança atualizado com sucesso!";
-    } else {
-        $_SESSION['msg_error'] = "Erro ao atualizar o endereço de cobrança.";
+// --- Submeter pedido ---
+if (isset($_POST['ordersubmit'])) {
+    if (strlen($_SESSION['login']) == 0) {
+        header('location:login.php');
+        exit();
     }
 
-    header("Location: my-cart.php");
-    exit();
-}
+    if (!empty($_SESSION['cart'])) {
+        $userId = intval($_SESSION['id']);
+        $stmt = $con->prepare("INSERT INTO orders(userId, productId, quantity) VALUES (?, ?, ?)");
 
+        foreach ($_SESSION['cart'] as $productId => $item) {
+            $quantity = intval($item['quantity']);
+            $stmt->bind_param("iii", $userId, $productId, $quantity);
+            $stmt->execute();
+        }
 
-// code for Shipping address updation
-if(isset($_POST['shipupdate']))
-{
-    $saddress = $_POST['shippingaddress'];
-    $sstate = $_POST['shippingstate'];
-    $scity = $_POST['shippingcity'];
-    $spincode = $_POST['shippingpincode'];
-    
-    $query = mysqli_query($con,"UPDATE users SET shippingAddress='$saddress', shippingState='$sstate', shippingCity='$scity', shippingPincode='$spincode' WHERE id='".$_SESSION['id']."'");
-
-    if($query) {
-        $_SESSION['msg_success'] = "Endereço de Envio atualizado com sucesso!";
+        unset($_SESSION['cart']);
+        $_SESSION['msg_success'] = "Pedido realizado com sucesso!";
+        header('location:payment-method.php');
+        exit();
     } else {
-        $_SESSION['msg_error'] = "Erro ao atualizar o endereço de envio.";
+        $_SESSION['msg_error'] = "Seu carrinho está vazio!";
+        header('location:my-cart.php');
+        exit();
     }
-
-    header("Location: my-cart.php");
-    exit();
 }
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -195,10 +163,6 @@ if(isset($_POST['shipupdate']))
 
 	</head>
     <body class="cnt-home">
-		<!-- jQuery + Toastr -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
 $(document).ready(function () {
@@ -427,11 +391,21 @@ while($row=mysqli_fetch_array($query))
 					    <input type="text" class="form-control unicase-form-control text-input" id="billingcity" name="billingcity" required="required" value="<?php echo $row['billingCity'];?>" >
 					  </div>
 
-					  <div class="form-group">
-					  <label class="info-title" for="Billing Pincode">CEP de Cobrança<span>*</span></label>
-                <input type="password" class="form-control unicase-form-control text-input" id = "billingpincode"  name = "billingpincode" required = "required" value="<?php echo $row['billingPincode'];?>" >
-            </div>
-
+					<div class="form-group">
+    <label class="info-title" for="billingpincode">CEP de Cobrança <span>*</span></label>
+    <input 
+        type="text" 
+        class="form-control unicase-form-control text-input" 
+        id="billingpincode" 
+        name="billingpincode" 
+        required 
+        value="<?php echo $row['billingPincode']; ?>" 
+		autocomplete="off"
+       
+    >
+</div>
+						
+					</div>
 
 					  <button type="submit" name="update" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
 			
@@ -513,18 +487,28 @@ while($row=mysqli_fetch_array($query))
     </select>
 </div>
 
-					  <div class="form-group">
-					    <label class="info-title" for="Billing City">Cidade de Envio <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="shippingcity" name="shippingcity" required="required" value="<?php echo $row['shippingCity'];?>" >
-					  </div>
+					 <div class="form-group">
+    <label class="info-title" for="Shipping City">Cidade de Envio <span>*</span></label>
+    <input type="text" class="form-control unicase-form-control text-input" id="shippingcity" name="shippingcity" required="required" value="<?php echo $row['shippingCity'];?>" pattern="[A-Za-zÀ-ÿ\s]+" title="A cidade deve conter apenas letras e espaços.">
+</div>
 
-					  <div class="form-group">
-					  <label class="info-title" for="Shipping Pincode">CEP de Envio<span>*</span></label>
-                <input type="password" class="form-control unicase-form-control text-input" id = "shippingpincode"  name = "shippingpincode" required = "required" value="<?php echo $row['shippingPincode'];?>" >
-            </div>
+					<div class="form-group">
+    <label class="info-title" for="shippingpincode">CEP de Envio <span>*</span></label>
+    <input 
+        type="text" 
+        class="form-control unicase-form-control text-input" 
+        id="shippingpincode" 
+        name="shippingpincode" 
+        required 
+        value="<?php echo $row['shippingPincode']; ?>"
+		autocomplete="off"
+ 
+       
+    >
+	</div>
 
 
-					  <button type="submit" name="shipupdate" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
+					<button type="submit" name="update" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
 					<?php } ?>
 
 		
@@ -626,15 +610,42 @@ echo "Seu carrinho de compras está vazio";
 <?php endif; ?>
 
 <script>
-function mascaraCep(input) {
-    let value = input.value.replace(/\D/g, ''); // remove tudo que não é número
-    if (value.length > 5) {
-        input.value = value.slice(0, 5) + '-' + value.slice(5, 8);
-    } else {
-        input.value = value;
-    }
-}
+
+
+document.getElementById('billingcity').addEventListener('input', function (e) {
+	this.value = this.value.replace(/[^A-Za-zÀ-ÿ\s]/g, '');
+});
+</script>
+<?php if (isset($_SESSION['msg_success']) || isset($_SESSION['msg_error'])): ?>
+<script>
+    $(document).ready(function () {
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            timeOut: 4000,
+            positionClass: 'toast-top-right'
+        };
+        <?php if (isset($_SESSION['msg_success'])): ?>
+            toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>");
+            <?php unset($_SESSION['msg_success']); ?>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['msg_error'])): ?>
+            toastr.error("<?php echo addslashes($_SESSION['msg_error']); ?>");
+            <?php unset($_SESSION['msg_error']); ?>
+        <?php endif; ?>
+    });
+
+
+<script>
+$(document).ready(function() {
+    $('#billingpincode').mask('00000-000');
+    $('#shippingpincode').mask('00000-000');
+});
 </script>
 
+</script>
+<?php endif; ?>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 </body>
+
 </html>

@@ -128,7 +128,8 @@ while($row=mysqli_fetch_array($query))
 					<td><?php echo $cnt;?></td>
 					<td class="cart-image">
 						<a class="entry-thumbnail" href="detail.html">
-						    <img src="admin/productimages/<?php echo $row['proid'];?>/<?php echo $row['pimg1'];?>" alt="" width="84" height="146">
+						    <img src="admin/productimages/<?php echo $row['c'];?>/<?php echo $row['pimg1'];?>" alt="" width="84" height="146">
+
 						</a>
 					</td>
 					<td class="cart-product-name-info">
@@ -151,7 +152,8 @@ while($row=mysqli_fetch_array($query))
 <?php $cnt=$cnt+1;} ?>
 <tr>
 	<td colspan="9"><div class="cart-checkout-btn pull-right">
-							<button type="submit" name="ordersubmit" class="btn btn-primary"><a href="payment-method.php">PROSSEGUIR para o pagamento</a></button>
+							<a href="payment-method.php" class="btn btn-primary">PROSSEGUIR para o pagamento</a>
+
 						
 						</div></td>
 

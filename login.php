@@ -256,8 +256,6 @@ echo htmlentities($_SESSION['errmsg']="");
     	<label class="info-title" for="contactno">Número de Contato <span>*</span></label>
     	<input type="password" class="form-control unicase-form-control text-input" 
            id="contactno" name="contactno" 
-           placeholder="(43) 91234-5678"
-           title="Formato válido: (43) 91234-5678"
            onblur="checkContactAvailability()" required>
     	<span id="contact-status" style="font-size:12px;"></span>
 		</div>

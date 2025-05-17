@@ -264,10 +264,20 @@ while($row=mysqli_fetch_array($query))
         ?>
     </select>
 </div>
-					  <div class="form-group">
-					    <label class="info-title" for="Billing City">Cidade de Cobrança <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="billingcity" name="billingcity" required="required" value="<?php echo $row['billingCity'];?>" >
-					  </div>
+                    <div class="form-group">
+                        <label class="info-title" for="Billing City">Cidade de Cobrança <span>*</span></label>
+                        <input 
+                            type="text" 
+                            class="form-control unicase-form-control text-input" 
+                            id="billingcity" 
+                            name="billingcity" 
+                            required="required" 
+                            value="<?php echo $row['billingCity'];?>" 
+                            pattern="[A-Za-zÀ-ÿ\s]+" 
+                            title="Digite apenas letras para a cidade"
+                            oninput="this.value = this.value.replace(/[^A-Za-zÀ-ÿ\s]/g, '')"
+                        >
+                    </div>
 
 	<div class="form-group">
     <label class="info-title" for="billingpincode">CEP de Cobrança <span>*</span></label>
@@ -365,10 +375,20 @@ while($row=mysqli_fetch_array($query))
         ?>
     </select>
 </div>
-					  <div class="form-group">
-					    <label class="info-title" for="Billing City">Cidade de Envio <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="shippingcity" name="shippingcity" required="required" value="<?php echo $row['shippingCity'];?>" >
-					  </div>
+                    <div class="form-group">
+                        <label class="info-title" for="shippingcity">Cidade de Envio <span>*</span></label>
+                        <input 
+                            type="text" 
+                            class="form-control unicase-form-control text-input" 
+                            id="shippingcity" 
+                            name="shippingcity" 
+                            required="required" 
+                            value="<?php echo $row['shippingCity'];?>" 
+                            pattern="[A-Za-zÀ-ÿ\s]+" 
+                            title="Digite apenas letras para a cidade"
+                            oninput="this.value = this.value.replace(/[^A-Za-zÀ-ÿ\s]/g, '')"
+                        >
+                    </div>
 
  <div class="form-group">
     <label class="info-title" for="shippingpincode">CEP de Envio <span>*</span></label>

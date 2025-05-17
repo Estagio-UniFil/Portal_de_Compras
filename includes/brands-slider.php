@@ -44,46 +44,37 @@
 					</a>	
 				</div>
 <div class="item">
-					<a href="#" class="image">
-						<img data-echo="brandsimage/samsung.jpg" src="assets/images/blank.gif" alt="">
-					</a>	
-				</div>
-				<div class="item">
-					<a href="#" class="image">
-						<img data-echo="brandsimage/hcl.jpg" src="assets/images/blank.gif" alt="">
-					</a>	
-				</div>
+	<a href="#" class="image">
+		<img data-echo="brandsimage/samsung.jpg" src="assets/images/blank.gif" alt="">
+	</a>	
+</div>
+<div class="item">
+	<a href="#" class="image">
+		<img data-echo="brandsimage/hcl.jpg" src="assets/images/blank.gif" alt="">
+	</a>	
+</div>
+<div class="item">
+	<a href="#" class="image">
+		<img data-echo="brandsimage/sony.jpg" src="assets/images/blank.gif" alt="">
+	</a>	
+</div>
+<div class="item">
+	<a href="#" class="image">
+		<img data-echo="brandsimage/voltas.jpg" src="assets/images/blank.gif" alt="">
+	</a>	
+</div>
+<div class="item">
+	<a href="#" class="image">
+		<img data-echo="brandsimage/lg.jpg" src="assets/images/blank.gif" alt="">
+	</a>	
+</div>
+<div class="item">
+	<a href="#" class="image">
+		<img data-echo="brandsimage/lenovo.jpg" src="assets/images/blank.gif" alt="">
+	</a>	
+</div>
+</div><!-- /.owl-carousel #logo-slider -->
+</div><!-- /.logo-slider-inner -->
+	</div><!-- /.logo-slider -->
+	</div><!-- /.logo-slider -->
 
-				
-
-				<div class="item">
-					<a href="#" class="image">
-						<img data-echo="brandsimage/sony.jpg" src="assets/images/blank.gif" alt="">
-					</a>	
-				</div>
-
-				<div class="item">
-					<a href="#" class="image">
-						<img data-echo="brandsimage/voltas.jpg" src="assets/images/blank.gif" alt="">
-					</a>	
-				</div>
-
-				<div class="item">
-					<a href="#" class="image">
-						<img data-echo="brandsimage/lg.jpg" src="assets/images/blank.gif" alt="">
-					</a>	
-				</div>
-
-				<div class="item">
-					<a href="#" class="image">
-						<img data-echo="brandsimage/lenovo.jpg" src="assets/images/blank.gif" alt="">
-					</a>	
-				</div>
-
-
-
-
-		    </div><!-- /.owl-carousel #logo-slider -->
-		</div><!-- /.logo-slider-inner -->
-	
-</div><!-- /.logo-slider -->
