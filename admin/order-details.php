@@ -140,7 +140,7 @@ $count=mysqli_num_rows($ret);
 
 
 										<tr>
-											<td colspan="4">    <a href="updateorder.php?oid=<?php echo htmlentities($orderid);?>" title="Update order" target="_blank" class="btn btn-primary">Take Action</a>
+											<td colspan="4">    <a href="updateorder.php?oid=<?php echo htmlentities($orderid);?>" title="Update order" target="_blank" class="btn btn-primary">Atualizar</a>
 											</td>
 											</tr>
 										</table>

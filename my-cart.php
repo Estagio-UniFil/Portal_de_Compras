@@ -2,44 +2,72 @@
 session_start();
 include('includes/config.php');
 
-// --- Atualizar endereço de envio ---
-if (isset($_POST['shipupdate'])) {
-    $shippingAddress = $_POST['shippingaddress'] ?? '';
-    $shippingState = $_POST['shippingstate'] ?? '';
-    $shippingCity = $_POST['shippingcity'] ?? '';
-    $shippingPincode = $_POST['shippingpincode'] ?? '';
+class Users {
+    private $con;
+    private $userId;
 
-    $userId = $_SESSION['id'];
-    $stmt = $con->prepare("UPDATE users SET shippingAddress=?, shippingState=?, shippingCity=?, shippingPincode=? WHERE id=?");
-    $stmt->bind_param("ssssi", $shippingAddress, $shippingState, $shippingCity, $shippingPincode, $userId);
-    $stmt->execute();
+    public function __construct($db, $userId) {
+        $this->con = $db;
+        $this->userId = $userId;
+    }
 
-    $_SESSION['msg_success'] = "Endereço de envio atualizado com sucesso!";
-    header("Location: " . $_SERVER['REQUEST_URI']);
+    // Obtém os dados do usuário
+    public function getUserDetails() {
+        $stmt = $this->con->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->bind_param("i", $this->userId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    // Atualiza endereço de cobrança
+    public function updateBillingAddress($address, $state, $city, $pincode) {
+		$pincode = preg_replace('/\D/', '', $pincode);
+		if (strlen($pincode) === 8) {
+			$pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5, 3);
+		}
+        $stmt = $this->con->prepare("UPDATE users SET billingAddress=?, billingState=?, billingCity=?, billingPincode=? WHERE id=?");
+        $stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
+        return $stmt->execute();
+    }
+
+    // Atualiza endereço de envio
+	public function updateShippingAddress($address, $state, $city, $pincode) {
+		// Garante que o CEP está no formato 00000-000
+		$pincode = preg_replace('/\D/', '', $pincode);
+		if (strlen($pincode) === 8) {
+			$pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5, 3);
+		}
+		$stmt = $this->con->prepare("UPDATE users SET shippingAddress=?, shippingState=?, shippingCity=?, shippingPincode=? WHERE id=?");
+		$stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
+		return $stmt->execute();
+	}
+	}
+
+
+// Verifica se o usuário está logado
+if (strlen($_SESSION['login']) == 0) {
+    header('location:login.php');
     exit();
 }
 
-// --- Atualizar endereço de cobrança ---
-if (isset($_POST['update'])) {
-    $name = trim($_POST['name'] ?? '');
-    $address = trim($_POST['billingaddress'] ?? '');
-    $state = trim($_POST['billingstate'] ?? '');
-    $city = trim($_POST['billingcity'] ?? '');
-    $pincode = trim($_POST['billingpincode'] ?? '');
+// Criar instância da classe Users
+$userId = $_SESSION['id'];
+$userProfile = new Users($con, $userId);
 
-    if (!preg_match("/^[A-Za-zÀ-ÿ\s\-]+$/", $city)) {
-        $_SESSION['msg_error'] = "Nome de cidade inválido. Use apenas letras e espaços.";
-        header("Location: " . $_SERVER['REQUEST_URI']);
-        exit();
+// Atualizar endereço de cobrança
+if (isset($_POST['update'])) {
+    $billingAddress = $_POST['billingaddress'] ?? '';
+    $billingState = $_POST['billingstate'] ?? '';
+    $billingCity = $_POST['billingcity'] ?? '';
+    $billingPincode = $_POST['billingpincode'] ?? '';
+
+    if ($userProfile->updateBillingAddress($billingAddress, $billingState, $billingCity, $billingPincode)) {
+        $_SESSION['msg_success'] = "Endereço de Cobrança atualizado com sucesso!";
+    } else {
+        $_SESSION['msg_error'] = "Erro ao atualizar o endereço de cobrança.";
     }
 
-    $userId = $_SESSION['id'];
-    $stmt = $con->prepare("UPDATE users SET name=?, billingAddress=?, billingState=?, billingCity=?, billingPincode=? WHERE id=?");
-    $stmt->bind_param("sssssi", $name, $address, $state, $city, $pincode, $userId);
-    $stmt->execute();
-
-    $_SESSION['msg_success'] = "Endereço de cobrança atualizado com sucesso!";
-    header("Location: " . $_SERVER['REQUEST_URI']);
+    header("Location: ".$_SERVER['PHP_SELF']);
     exit();
 }
 
@@ -394,13 +422,19 @@ while($row=mysqli_fetch_array($query))
 					<div class="form-group">
     <label class="info-title" for="billingpincode">CEP de Cobrança <span>*</span></label>
     <input 
-        type="text" 
+		type="text" 
         class="form-control unicase-form-control text-input" 
         id="billingpincode" 
         name="billingpincode" 
         required 
         value="<?php echo $row['billingPincode']; ?>" 
-		autocomplete="off"
+        pattern="\d{5}-\d{3}" 
+        title="Digite o CEP no formato 00000-000"
+        oninput="mascaraCep(this)"
+		inputmode="numeric"
+		maxlength="9"
+		style="-webkit-text-security: disc; text-security: disc;"
+		
        
     >
 </div>
@@ -495,13 +529,19 @@ while($row=mysqli_fetch_array($query))
 					<div class="form-group">
     <label class="info-title" for="shippingpincode">CEP de Envio <span>*</span></label>
     <input 
-        type="text" 
-        class="form-control unicase-form-control text-input" 
-        id="shippingpincode" 
-        name="shippingpincode" 
-        required 
-        value="<?php echo $row['shippingPincode']; ?>"
-		autocomplete="off"
+		type="text" 
+		class="form-control unicase-form-control text-input" 
+		id="shippingpincode" 
+		name="shippingpincode" 
+		required 
+		value="<?php echo $row['shippingPincode']; ?>" 
+		pattern="\d{5}-\d{3}" 
+		title="Digite o CEP no formato 00000-000"
+		oninput="mascaraCep(this)"
+		inputmode="numeric"
+		maxlength="9"
+		style="-webkit-text-security: disc; text-security: disc;"
+		
  
        
     >
@@ -638,10 +678,27 @@ document.getElementById('billingcity').addEventListener('input', function (e) {
 
 <script>
 $(document).ready(function() {
-    $('#billingpincode').mask('00000-000');
-    $('#shippingpincode').mask('00000-000');
-});
+    $('#billingpincode').mask('*****-***');
+	$('#billingpincode').on('input', function() {
+		mascaraCep(this);
+	});
+    $('#shippingpincode').mask('*****-***');
+	$('#shippingpincode').on('input', function() {
+	
+		mascaraCep(this);
+	})};
+
+
 </script>
+
+function mascaraCep(input) {
+    let value = input.value.replace(/\D/g, ''); // remove tudo que não é número
+    if (value.length > 5) {
+        input.value = value.slice(0, 5) + '-' + value.slice(5, 8);
+    } else {
+        input.value = value;
+    }
+}
 
 </script>
 <?php endif; ?>

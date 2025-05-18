@@ -124,7 +124,7 @@ return true;
 
 										<div class="control-group">
 											<div class="controls">
-												<button type="submit" name="submit" class="btn">Submit</button>
+												<button type="submit" name="submit" class="btn">Atualizar</button>
 											</div>
 										</div>
 									</form>

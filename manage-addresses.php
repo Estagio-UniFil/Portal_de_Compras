@@ -217,7 +217,7 @@ else:
      </div>
 
           <div class="row mt-3">
-         <div class="col-3">Pincode</div>
+         <div class="col-3">CEP</div>
          <div class="col-6"><input type="text" name="bpincode" id="bpincode" pattern="[0-9]+" title="only numbers" maxlength="6" class="form-control" required></div>
      </div>
 

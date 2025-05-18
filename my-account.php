@@ -13,22 +13,25 @@ if (strlen($_SESSION['login']) == 0) {
 
 // Classe Users para manipulação de usuários
 class Users {
-    private $con;
+	private $con;
 
-    public function __construct($db) {
-        $this->con = $db;
-    }
+	public function __construct($db) {
+		$this->con = $db;
+	}
 
-    public function updateUserInfo($userId, $name, $contactNo) {
-        $query = $this->con->prepare("UPDATE users SET name = ?, contactno = ? WHERE id = ?");
-        $query->bind_param("ssi", $name, $contactNo, $userId);
+	public function updateUserInfo($userId, $name, $contactNo) {
+		// Remove mask to store only numbers (optional, adjust as needed)
+		$contactNo = preg_replace('/\D/', '', $contactNo);
 
-        if ($query->execute()) {
-            return "Suas informações foram atualizadas!";
-        } else {
-            return "Erro ao atualizar as informações!";
-        }
-    }
+		$query = $this->con->prepare("UPDATE users SET name = ?, contactno = ? WHERE id = ?");
+		$query->bind_param("ssi", $name, $contactNo, $userId);
+
+		if ($query->execute()) {
+			return "Suas informações foram atualizadas!";
+		} else {
+			return "Erro ao atualizar as informações!";
+		}
+	}
 }
 
 // Criando instância da classe Users
@@ -228,13 +231,17 @@ while($row=mysqli_fetch_array($query))
 					  
 					  <div class="form-group">
     <label class="info-title" for="contactno">Número de Contato <span>*</span></label>
-    <input type="password"
-           class="form-control unicase-form-control text-input"
-           id="contactno"
-           name="contactno"
-           required
-           value="<?php echo htmlentities($row['contactno']); ?>"
-           placeholder="(99) 99999-9999" />
+	<input type="text"
+		class="form-control unicase-form-control text-input"
+		id="contactno"
+		name="contactno"
+		required
+		value="*****"
+		placeholder="*****"
+		pattern="9\d{4}-\d{4}" 
+		title="Formato: XXXXX-XXXX" 
+		autocomplete="off"
+		onfocus="this.value='<?php echo htmlentities($row['contactno']); ?>';" />
 </div>
 
 					  <button type="submit" name="update" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>

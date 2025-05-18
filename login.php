@@ -66,16 +66,23 @@ $user = new Users($con);
 
 // Cadastro de usuário
 if (isset($_POST['submit'])) {
-    $name = $_POST['fullname'];
-    $email = $_POST['emailid'];
-    $contactno = $_POST['contactno'];
-    $password = $_POST['password'];
+	$name = $_POST['fullname'];
+	$email = $_POST['emailid'];
+	$contactno = $_POST['contactno'];
+	$password = $_POST['password'];
 
-    if ($user->register($name, $email, $contactno, $password)) {
-        echo "<script>alert('Você está registrado com sucesso');</script>";
-    } else {
-        echo "<script>alert('O registro falhou. Algo deu errado');</script>";
-    }
+	// Validação: aceitar apenas formato 9XXXX-XXXX
+	if (preg_match('/^9\d{4}-\d{4}$/', $contactno)) {
+		// Armazena o número mascarado (******-****) no banco, se desejar
+		// $maskedContact = '******-****'; // Se quiser salvar mascarado
+		if ($user->register($name, $email, $contactno, $password)) {
+			echo "<script>alert('Você está registrado com sucesso');</script>";
+		} else {
+			echo "<script>alert('O registro falhou. Algo deu errado');</script>";
+		}
+	} else {
+		echo "<script>alert('O número de contato deve estar no formato 9XXXX-XXXX');</script>";
+	}
 }
 
 // Login do usuário
@@ -248,17 +255,46 @@ echo htmlentities($_SESSION['errmsg']="");
 
 		<div class="form-group">
 	    	<label class="info-title" for="exampleInputEmail2">Endreço de Email <span>*</span></label>
-	    	<input type="email" class="form-control unicase-form-control text-input" id="email" onBlur="userAvailability()" name="emailid" required >
-	    	       <span id="user-availability-status1" style="font-size:12px;"></span>
-	  	</div>
-
-		  <div class="form-group">
-    	<label class="info-title" for="contactno">Número de Contato <span>*</span></label>
-    	<input type="password" class="form-control unicase-form-control text-input" 
-           id="contactno" name="contactno" 
-           onblur="checkContactAvailability()" required>
-    	<span id="contact-status" style="font-size:12px;"></span>
+			<input type="email" class="form-control unicase-form-control text-input" id="email" onBlur="userAvailability()" name="emailid" required >
+				<span id="user-availability-status1" style="font-size:12px;"></span>
 		</div>
+
+		<div class="form-group">
+			<label class="info-title" for="contactno">Número de Contato <span>*</span></label>
+			<input 
+				type="password" 
+				class="form-control unicase-form-control text-input" 
+				id="contactno" 
+				name="contactno" 
+				pattern="9\d{4}-\d{4}" 
+				title="Formato: 9XXXX-XXXX" 
+				onblur="checkContactAvailability()" 
+				required
+				inputmode="text"
+				maxlength="9"
+			>
+			<span id="contact-status" style="font-size:12px;"></span>
+		</div>
+		<script>
+		$(document).ready(function(){
+			$('#contactno').inputmask('9\\9999-9999');
+		});
+		// Mascara visual de asteriscos
+		$('#contactno').on('input', function() {
+			let val = $(this).val();
+			let masked = val.replace(/./g, '*');
+			this.setAttribute('data-real', val);
+			this.value = masked;
+		}).on('focus', function() {
+			let real = this.getAttribute('data-real') || '';
+			this.value = real;
+		}).on('blur', function() {
+			let val = this.value;
+			let masked = val.replace(/./g, '*');
+			this.setAttribute('data-real', val);
+			this.value = masked;
+		});
+		</script>
 
 <!-- No final da página, antes de </body>: -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js"></script>

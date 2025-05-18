@@ -224,7 +224,7 @@ while($rw=mysqli_fetch_array($query))
 <?php } ?>
 	<div class="control-group">
 											<div class="controls">
-												<button type="submit" name="submit" class="btn">Atualizar</button>
+												<button type="submit" name="submit" class="btn btn-primary">Atualizar</button>
 											</div>
 										</div>
 									</form>

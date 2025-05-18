@@ -114,8 +114,8 @@ $st='Delivered';
     </tr>
     <tr>
       <td class="fontkink">       </td>
-      <td  class="fontkink"> <input type="submit" name="submit2"  value="update"   size="40" style="cursor: pointer;" /> &nbsp;&nbsp;   
-      <input name="Submit2" type="submit" class="txtbox4" value="Close this Window " onClick="return f2();" style="cursor: pointer;"  /></td>
+      <td  class="fontkink"> <input type="submit" name="submit2"  value="Atualizar"   size="40" style="cursor: pointer;" /> &nbsp;&nbsp;   
+      <input name="Submit2" type="submit" class="txtbox4" value="Fechar " onClick="return f2();" style="cursor: pointer;"  /></td>
     </tr>
 <?php } ?>
 </table>
