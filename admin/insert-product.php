@@ -1,45 +1,83 @@
 <?php
 session_start();
 include('include/config.php');
-if(strlen($_SESSION['alogin'])==0)
-	{	
-header('location:index.php');
-}
-else{
-	
-if(isset($_POST['submit']))
-{
-	$category=$_POST['category'];
-	$subcat=$_POST['subcategory'];
-	$productname=$_POST['productName'];
-	$productcompany=$_POST['productCompany'];
-	$productprice=$_POST['productprice'];
-	$productpricebd=$_POST['productpricebd'];
-	$productdescription=$_POST['productDescription'];
-	$productscharge=$_POST['productShippingcharge'];
-	$productavailability=$_POST['productAvailability'];
-	$productimage1=$_FILES["productimage1"]["name"];
-	$productimage2=$_FILES["productimage2"]["name"];
-	$productimage3=$_FILES["productimage3"]["name"];
-//for getting product id
-$query=mysqli_query($con,"select max(id) as pid from products");
-	$result=mysqli_fetch_array($query);
-	 $productid=$result['pid']+1;
-	$dir="productimages/$productid";
-if(!is_dir($dir)){
-		mkdir("productimages/".$productid);
-	}
 
-	move_uploaded_file($_FILES["productimage1"]["tmp_name"],"productimages/$productid/".$_FILES["productimage1"]["name"]);
-	move_uploaded_file($_FILES["productimage2"]["tmp_name"],"productimages/$productid/".$_FILES["productimage2"]["name"]);
-	move_uploaded_file($_FILES["productimage3"]["tmp_name"],"productimages/$productid/".$_FILES["productimage3"]["name"]);
-$sql=mysqli_query($con,"insert into products(category,subCategory,productName,productCompany,productPrice,productDescription,shippingCharge,productAvailability,productImage1,productImage2,productImage3,productPriceBeforeDiscount) values('$category','$subcat','$productname','$productcompany','$productprice','$productdescription','$productscharge','$productavailability','$productimage1','$productimage2','$productimage3','$productpricebd')");
-$_SESSION['msg']="Produto Registrado com Sucesso !!";
-
+// Verifica login
+if(strlen($_SESSION['alogin']) == 0) {
+    header('location:index.php');
+    exit;
 }
 
+// Classe de Produto
+class Products {
+    private $con;
 
+    public function __construct($db) {
+        $this->con = $db;
+    }
+
+    private function sanitizeFileName($filename) {
+        return preg_replace('/[^a-zA-Z0-9.\-_]/', '', $filename);
+    }
+
+    public function addProduct($data, $files) {
+        $category = $data['category'];
+        $subcat = $data['subcategory'];
+        $productname = $data['productName'];
+        $productcompany = $data['productCompany'];
+        $productprice = $data['productprice'];
+        $productpricebd = $data['productpricebd'];
+        $productdescription = $data['productDescription'];
+        $productscharge = $data['productShippingcharge'];
+        $productavailability = $data['productAvailability'];
+
+        $productimage1 = $this->sanitizeFileName($files["productimage1"]["name"]);
+        $productimage2 = $this->sanitizeFileName($files["productimage2"]["name"]);
+        $productimage3 = $this->sanitizeFileName($files["productimage3"]["name"]);
+
+        $sql = mysqli_query($this->con, "
+            INSERT INTO products (
+                category, subCategory, productName, productCompany, productPrice,
+                productDescription, shippingCharge, productAvailability,
+                productImage1, productImage2, productImage3, productPriceBeforeDiscount
+            ) VALUES (
+                '$category', '$subcat', '$productname', '$productcompany', '$productprice',
+                '$productdescription', '$productscharge', '$productavailability',
+                '$productimage1', '$productimage2', '$productimage3', '$productpricebd'
+            )
+        ");
+
+        if ($sql) {
+            $productid = mysqli_insert_id($this->con);
+            $dir = "productimages/$productid";
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+
+            $upload1 = move_uploaded_file($files["productimage1"]["tmp_name"], "$dir/$productimage1");
+            $upload2 = move_uploaded_file($files["productimage2"]["tmp_name"], "$dir/$productimage2");
+            $upload3 = move_uploaded_file($files["productimage3"]["tmp_name"], "$dir/$productimage3");
+
+            if ($upload1 && $upload2) {
+                $_SESSION['msg'] = "Produto registrado com sucesso!";
+            } else {
+                $_SESSION['msg'] = "Produto registrado, mas houve erro ao fazer upload das imagens.";
+            }
+        } else {
+            $_SESSION['msg'] = "Erro ao registrar produto.";
+        }
+    }
+}
+
+// Chama a função se o formulário for enviado
+if(isset($_POST['submit'])) {
+    $product = new Products($con);
+    $product->addProduct($_POST, $_FILES);
+}
 ?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -251,4 +289,4 @@ while($row=mysqli_fetch_array($query))
 		} );
 	</script>
 </body>
-<?php } ?>
+<?php  ?>

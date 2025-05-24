@@ -94,7 +94,10 @@ while($row=mysqli_fetch_array($query))
 											<td><?php echo htmlentities($row['productname']);?></td>
 									
 											<td><?php echo htmlentities($row['orderdate']);?></td>
-											<td>    <a href="order-details.php?oid=<?php echo htmlentities($row['id']);?>" title="Order Details" target="blank" class="btn btn-info">Details</a>
+											<td>
+    <a href="order-details.php?oid=<?php echo htmlentities($row['id']);?>" title="Order Details" class="btn btn-info">Detalhes</a>
+</td>
+
 											</td>
 											</tr>
 

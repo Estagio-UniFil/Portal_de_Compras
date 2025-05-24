@@ -2,25 +2,35 @@
 <?php
 session_start();
 include('include/config.php');
-if(strlen($_SESSION['alogin'])==0)
-	{	
-header('location:index.php');
+
+if(strlen($_SESSION['alogin'])==0) {	
+    header('location:index.php');
+    exit;
+} else {
+    $pid = intval($_GET['id']); // ID do produto
+
+    if (isset($_POST['submit'])) {
+        $productname = $_POST['productName'];
+        $productimage1 = $_FILES["productimage1"]["name"];
+
+        // Diretório do produto
+        $dir = "productimages/$pid";
+
+        // Cria o diretório se não existir
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true); // cria diretório recursivamente com permissão total
+        }
+
+        // Move o arquivo de upload para o diretório correto
+        if (move_uploaded_file($_FILES["productimage1"]["tmp_name"], "$dir/$productimage1")) {
+            $sql = mysqli_query($con, "UPDATE products SET productImage1='$productimage1' WHERE id='$pid'");
+            $_SESSION['msg'] = "Imagem do Produto Atualizada com Sucesso !!";
+        } else {
+            $_SESSION['msg'] = "Erro ao mover a imagem. Verifique permissões da pasta.";
+        }
+    }
 }
-else{
-	$pid=intval($_GET['id']);// product id
-if(isset($_POST['submit']))
-{
-	$productname=$_POST['productName'];
-	$productimage1=$_FILES["productimage1"]["name"];
-//$dir="productimages";
-//unlink($dir.'/'.$pimage);
-
-
-	move_uploaded_file($_FILES["productimage1"]["tmp_name"],"productimages/$pid/".$_FILES["productimage1"]["name"]);
-	$sql=mysqli_query($con,"update  products set productImage1='$productimage1' where id='$pid' ");
-$_SESSION['msg']="Imagem do Produto Atualizada com Sucesso  !!";
-
-}
+?>
 
 
 ?>
@@ -162,4 +172,4 @@ while($row=mysqli_fetch_array($query))
 		} );
 	</script>
 </body>
-<?php } ?>
+<?php  ?>

@@ -82,14 +82,17 @@ if (isset($_GET['del'])) {
 
 // Mover item para o carrinho
 if (isset($_GET['action']) && $_GET['action'] == "add") {
-    $productId = intval($_GET['id']);
-    $message = $wishlist->moveToCart($productId, $orders);
-    if ($message !== true) {
-        echo "<script>alert('$message');</script>";
-    } else {
-        header('location:my-wishlist.php');
-        exit();
-    }
+	$productId = intval($_GET['id']);
+	$result = $wishlist->moveToCart($productId, $orders);
+	if ($result === true) {
+		$_SESSION['msg_success'] = "Produto adicionado ao carrinho com sucesso.";
+		header("Location: my-cart.php");
+		exit();
+	} else {
+		$_SESSION['msg_error'] = "O ID do produto é inválido.";
+		header("Location: index.php");
+		exit();
+	}
 }
 ?>
 
@@ -211,7 +214,7 @@ $num=mysqli_num_rows($rt);
 						<a href="my-wishlist.php?page=product&action=add&id=<?php echo $row['pid']; ?>" class="btn-upper btn btn-primary">Adicionar ao carrinho</a>
 					</td>
 					<td class="col-md-2 close-btn">
-						<a href="my-wishlist.php?del=<?php echo htmlentities($row['wid']);?>" onClick="return confirm('Are you sure you want to delete?')" class=""><i class="fa fa-times"></i></a>
+						<a href="my-wishlist.php?del=<?php echo htmlentities($row['wid']);?>" class="remove-wishlist-item"><i class="fa fa-times"></i></a>
 					</td>
 				</tr>
 				<?php } } else{ ?>
@@ -249,20 +252,66 @@ $num=mysqli_num_rows($rt);
 	<!-- For demo purposes – can be removed on production -->
 	
 	<script src="switchstylesheet/switchstylesheet.js"></script>
-	
-	<script>
-		$(document).ready(function(){ 
-			$(".changecolor").switchstylesheet( { seperator:"color"} );
-			$('.show-theme-options').click(function(){
-				$(this).parent().toggleClass('open');
-				return false;
-			});
-		});
 
-		$(window).bind("load", function() {
-		   $('.show-theme-options').delay(2000).trigger('click');
-		});
-	</script>
+	 <style>
+    .custom-confirm-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .custom-confirm-box {
+      background: #fff;
+      padding: 25px 30px;
+      max-width: 400px;
+      width: 90%;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      text-align: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .custom-confirm-box p {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .custom-confirm-box button {
+      min-width: 110px;
+      padding: 10px 15px;
+      margin: 0 8px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .custom-confirm-box .btn-confirm {
+      background-color: #d9534f;
+      color: #fff;
+    }
+
+    .custom-confirm-box .btn-confirm:hover {
+      background-color: #c9302c;
+    }
+
+    .custom-confirm-box .btn-cancel {
+      background-color: #6c757d;
+      color: #fff;
+    }
+
+    .custom-confirm-box .btn-cancel:hover {
+      background-color: #5a6268;
+    }
+  </style>
+	
 </body>
 </html>
 <?php ?>

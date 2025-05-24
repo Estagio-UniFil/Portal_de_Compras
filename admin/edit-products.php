@@ -1,38 +1,101 @@
-
 <?php
 session_start();
 include('include/config.php');
-if(strlen($_SESSION['alogin'])==0)
-	{	
-header('location:index.php');
-}
-else{
-	$pid=intval($_GET['id']);// product id
-if(isset($_POST['submit']))
-{
-	$category=$_POST['category'];
-	$subcat=$_POST['subcategory'];
-	$productname=$_POST['productName'];
-	$productcompany=$_POST['productCompany'];
-	$productprice=$_POST['productprice'];
-	$productpricebd=$_POST['productpricebd'];
-	$productdescription=$_POST['productDescription'];
-	$productscharge=$_POST['productShippingcharge'];
-	$productavailability=$_POST['productAvailability'];
-	
-$sql=mysqli_query($con,"update  products set category='$category',subCategory='$subcat',productName='$productname',productCompany='$productcompany',productPrice='$productprice',productDescription='$productdescription',shippingCharge='$productscharge',productAvailability='$productavailability',productPriceBeforeDiscount='$productpricebd' where id='$pid' ");
-$_SESSION['msg']="Produto atualizado com sucesso !!";
 
+if (strlen($_SESSION['alogin']) == 0) {
+    header('location:index.php');
+    exit();
 }
 
+if (isset($_GET['id'])) {
+    $pid = intval($_GET['id']);
+} else {
+    header('Location: manage-products.php');
+    exit();
+}
 
+// Classe Product
+class Product {
+    private $db;
+
+    public function __construct($con) {
+        $this->db = $con;
+    }
+
+    public function updateProduct($id, $data) {
+        $stmt = $this->db->prepare("UPDATE products SET 
+            category = ?, 
+            subCategory = ?, 
+            productName = ?, 
+            productCompany = ?, 
+            productPrice = ?, 
+            productDescription = ?, 
+            shippingCharge = ?, 
+            productAvailability = ?, 
+            productPriceBeforeDiscount = ?
+            WHERE id = ?");
+
+        if (!$stmt) {
+            throw new Exception("Erro ao preparar a query: " . $this->db->error);
+        }
+
+        $stmt->bind_param(
+            "iissdssddi",
+            $data['category'],
+            $data['subcategory'],
+            $data['productName'],
+            $data['productCompany'],
+            $data['productPrice'],
+            $data['productDescription'],
+            $data['shippingCharge'],
+            $data['productAvailability'],
+            $data['productPriceBeforeDiscount'],
+            $id
+        );
+
+        return $stmt->execute();
+    }
+}
+
+// Lógica do formulário
+if (isset($_POST['submit']) && isset($_GET['id'])) {
+    $pid = intval($_GET['id']);
+    $product = new Product($con);
+
+    $data = [
+        'category' => intval($_POST['category']),
+        'subcategory' => intval($_POST['subcategory']),
+        'productName' => $_POST['productName'],
+        'productCompany' => $_POST['productCompany'],
+        'productPrice' => floatval($_POST['productprice']),
+        'productDescription' => $_POST['productDescription'],
+        'shippingCharge' => floatval($_POST['productShippingcharge']),
+        'productAvailability' => $_POST['productAvailability'],
+        'productPriceBeforeDiscount' => floatval($_POST['productpricebd'])
+    ];
+
+    try {
+        if ($product->updateProduct($pid, $data)) {
+            $_SESSION['msg'] = "Produto atualizado com sucesso !!";
+        } else {
+            $_SESSION['msg'] = "Erro ao atualizar o produto.";
+        }
+    } catch (Exception $e) {
+        $_SESSION['msg'] = "Erro: " . $e->getMessage();
+    }
+
+    header("Location: manage-products.php");
+    exit();
+}
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Admin| Inserir Produto</title>
+	<title>Admin| Editar Produto</title>
 	<link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link type="text/css" href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
 	<link type="text/css" href="css/theme.css" rel="stylesheet">
@@ -72,7 +135,7 @@ $("#suggesstion-box").hide();
 
 						<div class="module">
 							<div class="module-head">
-								<h3>Inserir Produto</h3>
+								<h3>Editar Produto</h3>
 							</div>
 							<div class="module-body">
 
@@ -258,4 +321,4 @@ while($rw=mysqli_fetch_array($query))
 		} );
 	</script>
 </body>
-<?php } ?>
+<?php  ?>

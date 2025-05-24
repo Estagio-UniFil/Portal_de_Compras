@@ -108,7 +108,6 @@ else{
 					<th class="cart-sub-total item">Preço por Unidade</th>
 						<th class="cart-sub-total item">Taxa de Frete</th>
 					<th class="cart-total">Total Geral</th>
-					<th class="cart-total item">Método de Pagamento</th>
 					<th class="cart-description item">Data do Pedido</th>
 					<th class="cart-total last-item">Ação</th>
 				</tr>

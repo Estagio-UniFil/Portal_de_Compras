@@ -40,22 +40,25 @@ class Orders {
 
 // Classe Wishlist para gerenciamento da lista de desejos
 class Wishlist {
-    private $con;
+	private $con;
 
-    public function __construct($db) {
-        $this->con = $db;
-    }
+	public function __construct($db) {
+		$this->con = $db;
+	}
 
-    // Método para adicionar um produto à wishlist
-    public function addToWishlist($userId, $productId) {
-        $stmt = $this->con->prepare("INSERT INTO wishlist(userId, productId) VALUES(?, ?)");
-        $stmt->bind_param("ii", $userId, $productId);
-        if ($stmt->execute()) {
-            echo "<script>alert('Produto adicionado à lista de desejos');</script>";
-            echo "<script type='text/javascript'> document.location ='my-wishlist.php'; </script>";
-            exit();
-        }
-    }
+	// Método para adicionar um produto à wishlist
+	public function addToWishlist($userId, $productId) {
+		$stmt = $this->con->prepare("INSERT INTO wishlist(userId, productId) VALUES(?, ?)");
+		$stmt->bind_param("ii", $userId, $productId);
+		if ($stmt->execute()) {
+			$_SESSION['msg_success'] = "Produto adicionado com sucesso à sua lista de desejos!";
+		} else {
+			$_SESSION['msg_error'] = "Não foi possível adicionar o produto à lista de desejos. Tente novamente.";
+		}
+		// Redireciona para evitar reenvio do formulário
+		header("Location: " . $_SERVER['REQUEST_URI']);
+		exit();
+	}
 }
 
 // Criando instâncias das classes

@@ -27,15 +27,22 @@
 </div>
 <div class="col-xs-12 col-sm-12 col-md-6 top-search-holder">
 <div class="search-area">
-    <form name="search" method="post" action="search-result.php">
         <div class="control-group">
 
-            <input class="search-field" placeholder="Pesquisar Aqui..." name="product" required="required" />
+           <form class="sidebar-search" method="post" action="search-result.php">
+  <input
+    class="search-field"
+    type="text"
+    name="product"
+    placeholder="Pesquisar Aqui..."
+    required
+  />
+  <button class="search-button" type="submit" name="search" aria-label="Buscar"></button>
+</form>
 
-            <button class="search-button" type="submit" name="search"></button>    
+
 
         </div>
-    </form>
 </div><!-- /.search-area -->
 <!-- ============================================================= SEARCH AREA : END ============================================================= -->				</div><!-- /.top-search-holder -->
 
@@ -168,9 +175,6 @@ if(!empty($_SESSION['cart'])){
 		</ul><!-- /.dropdown-menu-->
 	</div>
 	<?php }?>
-
-
-
 
 <!-- ============================================================= SHOPPING CART DROPDOWN : END============================================================= -->				</div><!-- /.top-cart-row -->
 			</div><!-- /.row -->

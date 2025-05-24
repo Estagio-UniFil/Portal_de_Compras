@@ -1,28 +1,83 @@
-<?php session_start();
+<?php   
+namespace Admin;
+session_start();
 include_once('includes/config.php');
-if(strlen( $_SESSION["aid"])==0)
-{   
-header('location:logout.php');
-} else {
-//For Adding Products
-if(isset($_POST['submit']))
-{
 
-    $pid=intval($_GET['id']);
-    $category=$_POST['category'];
-    $subcat=$_POST['subcategory'];
-    $productname=$_POST['productName'];
-    $productcompany=$_POST['productCompany'];
-    $productprice=$_POST['productprice'];
-    $productpricebd=$_POST['productpricebd'];
-    $productdescription=$_POST['productDescription'];
-    $productscharge=$_POST['productShippingcharge'];
-    $productavailability=$_POST['productAvailability'];
-    $updatedby=$_SESSION['aid'];
+// Verifica login
+if (strlen($_SESSION["aid"]) == 0) {
+    header('location:logout.php');
+    exit();
+}
 
-$sql=mysqli_query($con,"update products set category='$category',subCategory='$subcat',productName='$productname',productCompany='$productcompany',productPrice='$productprice',productDescription='$productdescription',shippingCharge='$productscharge',productAvailability='$productavailability',productPriceBeforeDiscount='$productpricebd',lastUpdatedBy='$updatedby' where id='$pid'");
-echo "<script>alert('Detalhes do produto atualizados com sucesso');</script>";
-echo "<script>window.location.href='manage-products.php'</script>";
+// Classe Products com método updateProduct
+class Products {
+    private $con;
+    private $adminId;
+
+    public function __construct($dbConnection, $adminId) {
+        $this->con = $dbConnection;
+        $this->adminId = $adminId;
+    }
+
+    public function updateProduct($id, $data) {
+        $query = "UPDATE products 
+                  SET category=?, subCategory=?, productName=?, productCompany=?, 
+                      productPrice=?, productDescription=?, shippingCharge=?, 
+                      productAvailability=?, productPriceBeforeDiscount=?, lastUpdatedBy=? 
+                  WHERE id=?";
+
+        $stmt = $this->con->prepare($query);
+        if (!$stmt) {
+            throw new \Exception("Erro ao preparar: " . $this->con->error);
+        }
+
+        $stmt->bind_param(
+            "iissdssdiii",
+            $data['category'],
+            $data['subcategory'],
+            $data['productName'],
+            $data['productCompany'],
+            $data['productprice'],
+            $data['productDescription'],
+            $data['productShippingcharge'],
+            $data['productAvailability'],
+            $data['productpricebd'],
+            $this->adminId,
+            $id
+        );
+
+        return $stmt->execute();
+    }
+}
+
+// Lógica ao enviar o formulário
+if (isset($_POST['submit'])) {
+    $pid = intval($_GET['id']);
+    $product = new Products($con, $_SESSION['aid']);
+
+    $data = [
+        'category' => $_POST['category'],
+        'subcategory' => $_POST['subcategory'],
+        'productName' => $_POST['productName'],
+        'productCompany' => $_POST['productCompany'],
+        'productprice' => $_POST['productprice'],
+        'productDescription' => $_POST['productDescription'],
+        'productShippingcharge' => $_POST['productShippingcharge'],
+        'productAvailability' => $_POST['productAvailability'],
+        'productpricebd' => $_POST['productpricebd']
+    ];
+
+    try {
+        if ($product->updateProduct($pid, $data)) {
+            echo "<script>alert('Detalhes do produto atualizados com sucesso');</script>";
+            echo "<script>window.location.href='manage-products.php'</script>";
+            exit();
+        } else {
+            echo "<script>alert('Erro ao atualizar o produto.');</script>";
+        }
+    } catch (\Exception $e) {
+        echo "<script>alert('Erro: " . $e->getMessage() . "');</script>";
+    }
 }
 ?>
 
@@ -198,4 +253,4 @@ if($pa=='In Stock'):
         <script src="js/scripts.js"></script>
     </body>
 </html>
-<?php } ?>
+<?php  ?>

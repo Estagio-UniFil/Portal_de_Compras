@@ -4,6 +4,7 @@ session_start();
 error_reporting(0);
 include_once('includes/config.php');
 
+
 // Classe Orders para gerenciamento do carrinho
 class Orders {
     private $con;
@@ -53,12 +54,27 @@ class Wishlist {
 
     // Método para adicionar um produto à wishlist
     public function addToWishlist($userId, $productId) {
-        $stmt = $this->con->prepare("INSERT INTO wishlist(userId, productId) VALUES(?, ?)");
+        // Verifica se o produto já está na wishlist
+        $stmt = $this->con->prepare("SELECT id FROM wishlist WHERE userId = ? AND productId = ?");
         $stmt->bind_param("ii", $userId, $productId);
-        if ($stmt->execute()) {
-            echo "<script>alert('Produto adicionado à lista de desejos');</script>";
-            echo "<script type='text/javascript'> document.location ='my-wishlist.php'; </script>";
-            exit();
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            // Produto já está na wishlist
+            $_SESSION['msg_error'] = "Este produto já está na sua lista de desejos.";
+            return false;
+        } else {
+            // Adiciona o produto à wishlist
+            $stmt = $this->con->prepare("INSERT INTO wishlist(userId, productId) VALUES(?, ?)");
+            $stmt->bind_param("ii", $userId, $productId);
+            if ($stmt->execute()) {
+                $_SESSION['msg_success'] = "Produto adicionado à lista de desejos.";
+                return true;
+            } else {
+                $_SESSION['msg_error'] = "Erro ao adicionar à lista de desejos.";
+                return false;
+            }
         }
     }
 }
@@ -264,13 +280,7 @@ while($row=mysqli_fetch_array($sql))
 	<div id="category" class="category-carousel hidden-xs">
 		<div class="item">	
 			<div class="image">
-			<img 
-    src="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>" 
-    alt="Produto" 
-    class="img-fluid rounded shadow-sm"
-    style="max-width: 100%; height: auto; object-fit: contain; max-height: 300px;"
-    onerror="this.src='assets/images/noimage.png';"
-/>
+
 
 			</div>
 			<div class="container-fluid">

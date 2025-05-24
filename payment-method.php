@@ -1,5 +1,11 @@
 <?php 
 session_start();
+// Verifica se existe mensagem de sucesso armazenada na sessão (vinda de outro arquivo)
+if (isset($_SESSION['msg_success'])) {
+    $mensagem_toast = $_SESSION['msg_success'];
+    unset($_SESSION['msg_success']); // limpa a sessão
+}
+
 error_reporting(0);
 include('includes/config.php');
 
@@ -130,21 +136,38 @@ if (isset($_POST['submit'])) {
 	<script src="switchstylesheet/switchstylesheet.js"></script>
 	
 	<script>
-		$(document).ready(function(){ 
-			$(".changecolor").switchstylesheet( { seperator:"color"} );
-			$('.show-theme-options').click(function(){
-				$(this).parent().toggleClass('open');
-				return false;
-			});
-		});
+    $(document).ready(function(){ 
+        $(".changecolor").switchstylesheet({seperator: "color"});
+        $('.show-theme-options').click(function(){
+            $(this).parent().toggleClass('open');
+            return false;
+        });
+    });
 
-		$(window).bind("load", function() {
-		   $('.show-theme-options').delay(2000).trigger('click');
-		});
-	</script>
-	<!-- For demo purposes – can be removed on production : End -->
+    $(window).bind("load", function() {
+        $('.show-theme-options').delay(2000).trigger('click');
+    });
+</script>
 
-	
+<!-- Toastr -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<?php if (!empty($mensagem_toast)) : ?>
+<script>
+    $(document).ready(function () {
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            timeOut: 4000,
+            positionClass: "toast-top-right"
+        };
+        toastr.success("<?php echo addslashes($mensagem_toast); ?>");
+    });
+</script>
+<?php endif; ?>
+
 
 </body>
 </html>

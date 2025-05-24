@@ -44,15 +44,16 @@ class Users {
 	}
 
 
-// Verifica se o usuário está logado
-if (strlen($_SESSION['login']) == 0) {
-    header('location:login.php');
-    exit();
-}
+
 
 // Criar instância da classe Users
-$userId = $_SESSION['id'];
-$userProfile = new Users($con, $userId);
+if (isset($_SESSION['id'])) {
+    $userId = $_SESSION['id'];
+    $userProfile = new Users($con, $userId);
+} else {
+    $userProfile = null; // ou outra lógica caso não esteja logado
+}
+
 
 // Atualizar endereço de cobrança
 if (isset($_POST['update'])) {
@@ -129,7 +130,7 @@ if (isset($_POST['ordersubmit'])) {
         exit();
     } else {
         $_SESSION['msg_error'] = "Seu carrinho está vazio!";
-        header('location:my-cart.php');
+        header('location:payment-method.php');
         exit();
     }
 }
@@ -323,21 +324,28 @@ $num=mysqli_num_rows($rt);
   <input type="number" min="0" class="form-control" name="quantity[<?php echo $row['id']; ?>]" value="<?php echo $_SESSION['cart'][$row['id']]['quantity']; ?>" />
   </div>
 </td>
-					<td class="cart-product-sub-total">
-    <span class="cart-sub-total-price">
+					<!-- Preço unitário do produto -->
+<td class="cart-product-sub-total" style="vertical-align: middle;">
+    <span class="cart-sub-total-price" style="white-space: nowrap;">
         R$ <?php echo number_format($row['productPrice'], 2, ',', '.'); ?>
     </span>
 </td>
 
-<td class="cart-product-sub-total">
-    <span class="cart-sub-total-price">
+
+<!-- Valor do frete -->
+<td class="cart-product-shipping">
+    <span class="cart-shipping-price">
         R$ <?php echo number_format($row['shippingCharge'], 2, ',', '.'); ?>
     </span>
 </td>
 
-
-					<td class="cart-product-grand-total"><span class="cart-grand-total-price"><?php echo ($_SESSION['cart'][$row['id']]['quantity']*$row['productPrice']+$row['shippingCharge']); ?></span></td>
-				</tr>
+<!-- Total geral do item (quantidade * preço + frete) -->
+<td class="cart-product-grand-total">
+    <span class="cart-grand-total-price">
+        R$ <?php echo number_format($_SESSION['cart'][$row['id']]['quantity'] * $row['productPrice'] + $row['shippingCharge'], 2, ',', '.'); ?>
+    </span>
+</td>
+</tr>
 
 				<?php } }
 $_SESSION['pid']=$pdtid;

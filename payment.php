@@ -25,7 +25,7 @@ class Orders {
     }
 
     // Método para fazer um pedido
-    public function placeOrder($userId, $addressId, $totalAmount, $paymentType, $transactionNumber) {
+    public function createOrder($userId, $addressId, $totalAmount, $paymentType, $transactionNumber) {
         $orderNumber = mt_rand(100000000, 999999999); // Gera um número de pedido aleatório
 
         // Insere o pedido na tabela orders
@@ -64,7 +64,7 @@ if (isset($_POST['submit'])) {
     $transactionNumber = $_POST['txnnumber'];
 
     // Chama o método para processar o pedido
-    $orderNumber = $orders->placeOrder($userId, $addressId, $totalAmount, $paymentType, $transactionNumber);
+    $orderNumber = $orders->createOrder($userId, $addressId, $totalAmount, $paymentType, $transactionNumber);
 
     if ($orderNumber) {
         echo '<script>alert("Seu pedido foi feito com sucesso. O número do pedido é ' . $orderNumber . '")</script>';

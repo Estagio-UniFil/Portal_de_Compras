@@ -10,13 +10,22 @@ else{
 date_default_timezone_set('America/Sao_Paulo');// change according timezone
 $currentTime = date( 'd-m-Y h:i:s A', time () );
 
+
+
 if(isset($_GET['del']))
 		  {
-		          mysqli_query($con,"delete from products where id = '".$_GET['id']."'");
-                  $_SESSION['delmsg']="Product deleted !!";
+				  mysqli_query($con,"delete from products where id = '".$_GET['id']."'");
+				  $_SESSION['delmsg']="Produto deletedo !!";
 		  }
-
 ?>
+<?php if(isset($_SESSION['msg'])): ?>
+	<div class="alert alert-success">
+		<?php 
+			echo htmlentities($_SESSION['msg']);
+			unset($_SESSION['msg']); 
+		?>
+	</div>
+<?php endif; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,7 +92,10 @@ while($row=mysqli_fetch_array($query))
 											<td><?php echo htmlentities($row['postingDate']);?></td>
 											<td>
 											<a href="edit-products.php?id=<?php echo $row['id']?>" ><i class="icon-edit"></i></a>
-											<a href="manage-products.php?id=<?php echo $row['id']?>&del=delete" onClick="return confirm('Você tem certeza que deseja excluir')"><i class="icon-remove-sign"></i></a></td>
+											<a href="javascript:void(0);" onclick="deleteProduct(<?php echo $row['id']; ?>, '<?php echo addslashes($row['productName']); ?>')">
+   									 		<i class="icon-remove-sign"></i>
+											</a>
+
 										</tr>
 										<?php $cnt=$cnt+1; } ?>
 										
@@ -115,5 +127,27 @@ while($row=mysqli_fetch_array($query))
 			$('.dataTables_paginate > a:last-child').append('<i class="icon-chevron-right shaded"></i>');
 		} );
 	</script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function deleteProduct(id, name) {
+    Swal.fire({
+        title: 'Você tem certeza?',
+        text: `Deseja realmente excluir o produto "${name}"? Esta ação não pode ser desfeita.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sim, excluir',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `manage-products.php?id=${id}&del=delete`;
+        }
+    });
+}
+</script>
+
+
 </body>
 <?php } ?>

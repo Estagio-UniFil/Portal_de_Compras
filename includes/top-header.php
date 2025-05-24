@@ -43,6 +43,8 @@ else{ ?>
 				
 				</ul>
 			</div>
+
+			
 			
 			<div class="clearfix"></div>
 		</div><!-- /.header-top-inner -->

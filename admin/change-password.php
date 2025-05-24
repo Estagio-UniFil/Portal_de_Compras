@@ -2,30 +2,65 @@
 <?php
 session_start();
 include('include/config.php');
-if(strlen($_SESSION['alogin'])==0)
-	{	
-header('location:index.php');
-}
-else{
-date_default_timezone_set('America/Sao_Paulo');// change according timezone
-$currentTime = date( 'd-m-Y h:i:s A', time () );
 
+class Admin {
+    private $con;
+    private $username;
 
-if(isset($_POST['submit']))
-{
-$sql=mysqli_query($con,"SELECT password FROM  admin where password='".md5($_POST['password'])."' && username='".$_SESSION['alogin']."'");
-$num=mysqli_fetch_array($sql);
-if($num>0)
-{
- $con=mysqli_query($con,"update admin set password='".md5($_POST['newpassword'])."', updationDate='$currentTime' where username='".$_SESSION['alogin']."'");
-$_SESSION['msg']="Senha alterada com sucesso !!";
+    public function __construct($db, $username) {
+        $this->con = $db;
+        $this->username = $username;
+    }
+
+    // Método para resetar a senha
+    public function resetPassword($oldPassword, $newPassword) {
+        // Verifica se a senha antiga está correta
+        $stmt = $this->con->prepare("SELECT password FROM admin WHERE username = ? AND password = ?");
+        $oldPasswordHash = md5($oldPassword);
+        $stmt->bind_param("ss", $this->username, $oldPasswordHash);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            // Senha antiga correta, atualiza para nova senha
+            $newPasswordHash = md5($newPassword);
+            $currentTime = date('Y-m-d H:i:s');
+
+            $updateStmt = $this->con->prepare("UPDATE admin SET password = ?, updationDate = ? WHERE username = ?");
+            $updateStmt->bind_param("sss", $newPasswordHash, $currentTime, $this->username);
+
+            if ($updateStmt->execute()) {
+                return true; // Sucesso na atualização
+            } else {
+                return false; // Falha na atualização
+            }
+        } else {
+            return false; // Senha antiga incorreta
+        }
+    }
 }
-else
-{
-$_SESSION['msg']="Senha antiga não corresponde!!";
+
+// Verifica se o admin está logado
+if (empty($_SESSION['alogin'])) {
+    header('location:index.php');
+    exit();
 }
+
+// Instancia a classe Admin
+$admin = new Admin($con, $_SESSION['alogin']);
+
+if (isset($_POST['submit'])) {
+    $oldPassword = $_POST['password'] ?? '';
+    $newPassword = $_POST['newpassword'] ?? '';
+
+    if ($admin->resetPassword($oldPassword, $newPassword)) {
+        $_SESSION['msg'] = "Senha alterada com sucesso !!";
+    } else {
+        $_SESSION['msg'] = "Senha antiga não corresponde ou erro ao alterar.";
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,4 +181,4 @@ return true;
 	<script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
 	<script src="scripts/flot/jquery.flot.js" type="text/javascript"></script>
 </body>
-<?php } ?>
+<?php  ?>

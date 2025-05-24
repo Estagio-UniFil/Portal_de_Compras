@@ -13,7 +13,7 @@ class Users {
     }
 
     // Método para registrar um novo usuário
-	public function register($name, $email, $contactno, $password) {
+	public function createAccount($name, $email, $contactno, $password) {
 		// Usando password_hash() para gerar um hash seguro
 		$passwordHash = password_hash($password, PASSWORD_DEFAULT);
 		$stmt = $this->con->prepare("INSERT INTO users (name, email, contactno, password) VALUES (?, ?, ?, ?)");
@@ -71,17 +71,15 @@ if (isset($_POST['submit'])) {
 	$contactno = $_POST['contactno'];
 	$password = $_POST['password'];
 
-	// Validação: aceitar apenas formato 9XXXX-XXXX
-	if (preg_match('/^9\d{4}-\d{4}$/', $contactno)) {
-		// Armazena o número mascarado (******-****) no banco, se desejar
-		// $maskedContact = '******-****'; // Se quiser salvar mascarado
-		if ($user->register($name, $email, $contactno, $password)) {
+	// Validação: aceitar apenas formato 9XXXX-XXXX (9 + 4 dígitos + hífen + 4 dígitos, total 10 caracteres)
+	if (preg_match('/^9\d{4}-\d{4}$/', $contactno) && strlen($contactno) === 10) {
+		if ($user->createAccount($name, $email, $contactno, $password)) {
 			echo "<script>alert('Você está registrado com sucesso');</script>";
 		} else {
 			echo "<script>alert('O registro falhou. Algo deu errado');</script>";
 		}
 	} else {
-		echo "<script>alert('O número de contato deve estar no formato 9XXXX-XXXX');</script>";
+		echo "<script>alert('O número de contato deve estar no formato 9XXXX-XXXX, incluindo o hífen');</script>";
 	}
 }
 
@@ -271,7 +269,7 @@ echo htmlentities($_SESSION['errmsg']="");
 				onblur="checkContactAvailability()" 
 				required
 				inputmode="text"
-				maxlength="9"
+				maxlength="10"
 			>
 			<span id="contact-status" style="font-size:12px;"></span>
 		</div>

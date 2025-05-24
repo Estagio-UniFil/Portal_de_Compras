@@ -80,7 +80,7 @@ while ($row=mysqli_fetch_array($ret)) {
                     if( $ostatus==''): echo "Not Processed Yet";
                         else: echo $ostatus; endif;?><br />
                     </td>
-                    <td><a href="order-details.php?onumber=<?php echo htmlentities($row['orderNumber']);?>" class="btn-upper btn btn-primary">Details</a></td>
+                    <td><a href="order-details.php?onumber=<?php echo htmlentities($row['orderNumber']);?>" class="btn-upper btn btn-primary">Detalhes</a></td>
                 
                 </tr>
             

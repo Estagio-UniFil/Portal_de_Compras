@@ -12,7 +12,7 @@ class Users {
         $this->con = $con;
     }
 
-    public function resetPassword($email, $contact, $newPassword) {
+    public function forgetPassword($email, $contact, $newPassword) {
         $query = $this->con->prepare("SELECT id FROM users WHERE email = ? AND contactno = ?");
         $query->bind_param("ss", $email, $contact);
         $query->execute();
@@ -168,13 +168,22 @@ echo htmlentities($_SESSION['errmsg']="");
 
 		<div class="form-group">
     	<label class="info-title" for="contactno">Número de Contato <span>*</span></label>
-    	<input type="password" class="form-control unicase-form-control text-input" 
-           id="contactno" name="contactno" 
-           placeholder="(43) 91234-5678"
-           title="Formato válido: (43) 91234-5678"
-           onblur="checkContactAvailability()" required>
-    	<span id="contact-status" style="font-size:12px;"></span>
-		</div>
+		<input type="text" 
+			class="form-control unicase-form-control text-input" 
+			id="contactno" name="contact" 
+			placeholder="9XXXX-XXXX"
+			title="Formato válido: 9XXXX-XXXX"
+			pattern="9\d{4}-\d{4}"
+			maxlength="10"
+			onblur="checkContactAvailability()" 
+			required
+			style="font-family: 'password'; -webkit-text-security: disc; text-security: disc;">
+		<span id="contact-status" style="font-size:12px;"></span>
+		<script>
+		$(document).ready(function(){
+			$('#contactno').mask('90000-0000');
+		});
+		</script>
 
 
 <div class="form-group">

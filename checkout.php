@@ -15,7 +15,7 @@ class Orders {
         $this->con = $db;
     }
 
-    public function removeFromCart($itemId) {
+    public function removeItem($itemId) {
         $query = $this->con->prepare("DELETE FROM cart WHERE id = ?");
         $query->bind_param("i", $itemId);
         if ($query->execute()) {
@@ -63,7 +63,7 @@ $address = new Users($con, $_SESSION['id']);
 
 // Remover produto do carrinho
 if (isset($_GET['del'])) {
-    $cart->removeFromCart(intval($_GET['del']));
+    $cart->removeItem(intval($_GET['del']));
 }
 
 // Inserir endereço

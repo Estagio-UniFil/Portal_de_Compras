@@ -13,7 +13,7 @@ class Users {
     }
 
     // Método para registrar um novo usuário
-    public function register($name, $email, $contactno, $password) {
+    public function createAccount($name, $email, $contactno, $password) {
         $passwordHash = md5($password);
         $stmt = $this->con->prepare("INSERT INTO users (name, email, contactno, password) VALUES (?, ?, ?, ?)");
         $stmt->bind_param("ssss", $name, $email, $contactno, $passwordHash);
@@ -69,7 +69,7 @@ if (isset($_POST['submit'])) {
     $contactno = $_POST['contactno'];
     $password = $_POST['password'];
 
-    if ($user->register($name, $email, $contactno, $password)) {
+    if ($user->createAccount($name, $email, $contactno, $password)) {
         echo "<script>alert('Você foi registrado com sucesso');</script>";
     } else {
         echo "<script>alert('O registro falhou. Algo deu errado');</script>";

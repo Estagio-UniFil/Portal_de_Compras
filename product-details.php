@@ -1,13 +1,13 @@
 <?php
+namespace Models;
 session_start();
-
 error_reporting(0);
 include('includes/config.php');
 
 $orders = new Orders($con);
 
 if (isset($_GET['action']) && $_GET['action'] === "add" && isset($_GET['id'])) {
-    $status = $orders->addToCart($_GET['id']);
+    $status = $orders->addItem($_GET['id']);
 
     if ($status === "adicionado" || $status === "incrementado") {
         $_SESSION['successmsg'] = "Produto adicionado ao carrinho com sucesso!";
@@ -29,7 +29,7 @@ class Orders {
         $this->con = $db;
     }
 
-    public function addToCart($productId) {
+    public function addItem($productId) {
         $id = intval($productId);
 
         if (isset($_SESSION['cart'][$id])) {
@@ -56,27 +56,44 @@ class Orders {
 }	
 
 class Wishlist {
-    private $con;
+	private $con;
 
-    public function __construct($db) {
-        $this->con = $db;
-    }
+	public function __construct($db) {
+		$this->con = $db;
+	}
 
-    public function addToWishlist($productId) {
-        if (strlen($_SESSION['login']) == 0) {
-            header('location:login.php');
-            exit();
-        }
+	public function addToWishlist($productId) {
+		if (strlen($_SESSION['login']) == 0) {
+			header('location:login.php');
+			exit();
+		}
 
-        $pid = intval($productId);
-        $query = $this->con->prepare("INSERT INTO wishlist (userId, productId) VALUES (?, ?)");
-        $query->bind_param("ii", $_SESSION['id'], $pid);
+		$pid = intval($productId);
+		$userId = intval($_SESSION['id']);
 
-        if ($query->execute()) {
-            echo "<script>alert('Produto adicionado à lista de desejos');</script>";
-            header('location:my-wishlist.php');
-        }
-    }
+		// Verifica se já está na wishlist
+		$query = $this->con->prepare("SELECT id FROM wishlist WHERE userId = ? AND productId = ?");
+		$query->bind_param("ii", $userId, $pid);
+		$query->execute();
+		$result = $query->get_result();
+
+		if ($result->num_rows > 0) {
+			// Já está na wishlist, mostra mensagem de erro em vermelho
+			$_SESSION['errormsg'] = "<span style='color: #a94442;'>Produto já está na sua lista de desejos!</span>";
+			header('location:product-details.php?pid=' . $pid);
+			exit();
+		}
+
+		// Não está na wishlist, adiciona normalmente
+		$query = $this->con->prepare("INSERT INTO wishlist (userId, productId) VALUES (?, ?)");
+		$query->bind_param("ii", $userId, $pid);
+
+		if ($query->execute()) {
+			$_SESSION['successmsg'] = "Produto adicionado à sua lista de desejos com sucesso!";
+			header('location:product-details.php?pid=' . $pid);
+			exit();
+		}
+	}
 }
 
 class Reviews {
@@ -117,7 +134,7 @@ $reviews = new Reviews($con);
 
 // Adicionar ao carrinho
 if (isset($_GET['action']) && $_GET['action'] == "add" && isset($_GET['id'])) {
-    $orders->addToCart($_GET['id']);
+    $orders->addItem($_GET['id']);
 }
 
 // Adicionar à wishlist
@@ -212,12 +229,39 @@ if (isset($_POST['submit'])) {
 		<link rel="shortcut icon" href="assets/images/favicon.ico">
 	</head>
     <body class="cnt-home">
-	<<?php if (isset($_SESSION['successmsg'])): ?>
-<!-- Modal Personalizado -->
+<?php if (isset($_SESSION['successmsg'])): ?>
+<!-- Modal de Sucesso -->
+
 <div id="customModal" class="modal-custom">
   <div class="modal-content-custom">
-    <span class="close-custom" onclick="document.getElementById('customModal').style.display='none'">&times;</span>
-    <p><?php echo $_SESSION['successmsg']; unset($_SESSION['successmsg']); ?></p>
+	<span class="close-custom" onclick="document.getElementById('customModal').style.display='none'">&times;</span>
+	<p><?php echo $_SESSION['successmsg']; unset($_SESSION['successmsg']); ?></p>
+  </div>
+</div>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['errormsg'])): ?>
+<!-- Modal de Erro -->
+<style>
+.modal-content-error {
+  background-color: #f2dede;
+  border: 1px solid #a94442;
+  color: #a94442;
+}
+.close-error {
+  color: #a94442;
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+<div id="errorModal" class="modal-custom">
+  <div class="modal-content-custom modal-content-error">
+	<span class="close-error" onclick="document.getElementById('errorModal').style.display='none'">&times;</span>
+	<p><?php echo $_SESSION['errormsg']; unset($_SESSION['errormsg']); ?></p>
   </div>
 </div>
 <?php endif; ?>
