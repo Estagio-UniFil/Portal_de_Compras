@@ -140,13 +140,23 @@ if (isset($_POST['submit'])) {
     $pagamento = json_decode($response, true);
 
     // Exibe a resposta para debug
-    header('Content-Type: application/json');
-    echo json_encode([
-        'http_code' => $http_code,
-        'request' => $dadosCobranca,
-        'response' => $pagamento
-    ], JSON_PRETTY_PRINT);
+    if ($http_code == 200 && isset($pagamento['invoiceUrl'])) {
+    // Redireciona para o link do boleto ou PIX
+    header("Location: " . $pagamento['invoiceUrl']);
     exit;
+} else {
+    // Exibe erro amigável
+    echo "<h3>Erro ao processar o pagamento.</h3>";
+    if (isset($pagamento['errors'])) {
+        foreach ($pagamento['errors'] as $erro) {
+            echo "<p><strong>{$erro['description']}</strong></p>";
+        }
+    } else {
+        echo "<pre>";
+        print_r($pagamento);
+        echo "</pre>";
+    }
+}
 }
 ?>
 
@@ -208,7 +218,6 @@ if (isset($_POST['submit'])) {
                                     <form name="payment" method="post">
                                         <label><input type="radio" name="paymethod" value="Boleto" checked="checked"> Boleto</label><br>
                                         <label><input type="radio" name="paymethod" value="PIX"> PIX</label><br>
-                                        <label><input type="radio" name="paymethod" value="Cartão de Crédito"> Cartão de Crédito</label><br><br>
                                         <button type="submit" name="submit" class="btn btn-primary">Pagar</button>
                                     </form>
                                 </div>

@@ -134,7 +134,155 @@ if (isset($_POST['ordersubmit'])) {
         exit();
     }
 }
+
+const ASAAS_API_KEY = '$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjRhOTE5MDllLTg3NjktNDk4Mi05Y2U1LWM2NDA2ODQxZDUwYzo6JGFhY2hfNjY0MGJjZGUtOTU5Zi00MDEzLWE5NGYtM2RiOWRhNDZmN2Y5';
+const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3';
+
+// Função para gerar CPF válido aleatório
+function gerarCPF() {
+    $n = [];
+    for ($i = 0; $i < 9; $i++) {
+        $n[$i] = rand(0, 9);
+    }
+
+    $d1 = 0;
+    for ($i = 0, $peso = 10; $i < 9; $i++, $peso--) {
+        $d1 += $n[$i] * $peso;
+    }
+    $d1 = 11 - ($d1 % 11);
+    if ($d1 >= 10) $d1 = 0;
+
+    $d2 = 0;
+    for ($i = 0, $peso = 11; $i < 9; $i++, $peso--) {
+        $d2 += $n[$i] * $peso;
+    }
+    $d2 += $d1 * 2;
+    $d2 = 11 - ($d2 % 11);
+    if ($d2 >= 10) $d2 = 0;
+
+    return implode('', $n) . $d1 . $d2;
+}
+
+// Verifica se o usuário está logado
+if (strlen($_SESSION['login']) == 0) {
+    header('location:login.php');
+    exit();
+}
+
+if (isset($_POST['submit'])) {
+    $paymethod = $_POST['paymethod'];
+    $userId = $_SESSION['id'];
+
+    // Busca dados do usuário
+    $stmt = $con->prepare("SELECT name, email, asaas_customer_id FROM users WHERE id = ?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $stmt->bind_result($nome, $email, $asaasCustomerId);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Se o cliente não existir no Asaas, cria agora
+    if (empty($asaasCustomerId)) {
+        $cpf = gerarCPF();
+        $dadosCliente = [
+            'name' => $nome,
+            'email' => $email,
+            'cpfCnpj' => $cpf
+        ];
+
+        $curl = curl_init(ASAAS_API_URL . '/customers');
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($dadosCliente),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'User-Agent: Portal de Compras',
+                'access_token: ' . ASAAS_API_KEY
+            ],
+        ]);
+        $respCliente = curl_exec($curl);
+        $clienteData = json_decode($respCliente, true);
+        curl_close($curl);
+
+        if (isset($clienteData['id'])) {
+            $asaasCustomerId = $clienteData['id'];
+            // Salva no banco
+            $stmt = $con->prepare("UPDATE users SET asaas_customer_id = ? WHERE id = ?");
+            $stmt->bind_param("si", $asaasCustomerId, $userId);
+            $stmt->execute();
+            $stmt->close();
+        } else {
+            echo json_encode(['erro' => 'Falha ao criar cliente', 'resposta' => $clienteData]);
+            exit;
+        }
+    }
+
+    // Calcula valor dos pedidos não pagos
+    $total = 0.0;
+    $sql = "
+        SELECT o.quantity, p.productPrice
+        FROM orders o
+        JOIN products p ON o.productId = p.id
+        WHERE o.userId = ? AND o.paymentMethod IS NULL
+    ";
+    $stmt = $con->prepare($sql);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $total += $row['quantity'] * $row['productPrice'];
+    }
+    $stmt->close();
+
+    if ($total <= 0) {
+        echo "Nenhum item para cobrança.";
+        exit;
+    }
+
+    $validPaymentMethods = ['Boleto' => 'BOLETO', 'PIX' => 'PIX'];
+    if (!array_key_exists($paymethod, $validPaymentMethods)) {
+        $paymethod = 'Boleto';
+    }
+    $billingType = $validPaymentMethods[$paymethod];
+
+    // Cria a cobrança
+    $dadosCobranca = [
+        'customer' => $asaasCustomerId,
+        'billingType' => $billingType,
+        'value' => number_format($total, 2, '.', ''),
+        'dueDate' => date('Y-m-d', strtotime('+3 days'))
+    ];
+
+    $curl = curl_init(ASAAS_API_URL . '/payments');
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($dadosCobranca),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'User-Agent: Portal de Compras',
+            'access_token: ' . ASAAS_API_KEY
+        ],
+    ]);
+    $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    $pagamento = json_decode($response, true);
+
+    // Exibe a resposta para debug
+    header('Content-Type: application/json');
+    echo json_encode([
+        'http_code' => $http_code,
+        'request' => $dadosCobranca,
+        'response' => $pagamento
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
 ?>
+
+
 
 
 <!DOCTYPE html>
