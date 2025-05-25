@@ -14,35 +14,34 @@ class Orders {
     }
 
     // Método para adicionar um produto ao carrinho
-    public function addToCart($productId) {
-        if (isset($_SESSION['cart'][$productId])) {
-            $_SESSION['cart'][$productId]['quantity']++;
-            $_SESSION['msg_success'] = "Quantidade do produto atualizada no carrinho.";
-            header("Location: my-cart.php");
-            exit();
-        } else {
-            $stmt = $this->con->prepare("SELECT id, productPrice FROM products WHERE id = ?");
-            $stmt->bind_param("i", $productId);
-            $stmt->execute();
-            $result = $stmt->get_result();
+    public function addToCart($productId): bool {
+    if (isset($_SESSION['cart'][$productId])) {
+        $_SESSION['cart'][$productId]['quantity']++;
+        $_SESSION['msg_success'] = "Quantidade do produto atualizada no carrinho.";
+        return true;
+    } else {
+        $stmt = $this->con->prepare("SELECT id, productPrice FROM products WHERE id = ?");
+        $stmt->bind_param("i", $productId);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-            if ($result->num_rows > 0) {
-                $product = $result->fetch_assoc();
-                $_SESSION['cart'][$product['id']] = [
-                    "quantity" => 1,
-                    "price" => $product['productPrice']
-                ];
-                $_SESSION['msg_success'] = "Produto adicionado ao carrinho com sucesso.";
-                header("Location: my-cart.php");
-                exit();
-            } else {
-                $_SESSION['msg_error'] = "O ID do produto é inválido.";
-                header("Location: index.php");
-                exit();
-            }
+        if ($result->num_rows > 0) {
+            $product = $result->fetch_assoc();
+            $_SESSION['cart'][$product['id']] = [
+                "quantity" => 1,
+                "price" => $product['productPrice']
+            ];
+            $_SESSION['msg_success'] = "Produto adicionado ao carrinho com sucesso.";
+            return true;
+        } else {
+            $_SESSION['msg_error'] = "O ID do produto é inválido.";
+            return false;
         }
     }
 }
+        }
+    
+
 
 // Classe Wishlist para gerenciamento da lista de desejos
 class Wishlist {
@@ -87,14 +86,18 @@ $wishlist = new Wishlist($con);
 // Obtendo ID da categoria (caso necessário para filtragem de produtos)
 $cid = intval($_GET['cid']);
 
-// Adicionar produto ao carrinho
+
+// Adicionar produto ao carrinho com redirecionamento
 if (isset($_GET['action']) && $_GET['action'] == "add") {
     $productId = intval($_GET['id']);
-    $message = $order->addToCart($productId);
-    if ($message !== true) {
-        echo "<script>alert('$message');</script>";
+    if ($order->addToCart($productId)) {
+        header("Location: my-cart.php");
+    } else {
+        header("Location: index.php");
     }
+    exit();
 }
+
 
 // Adicionar produto à wishlist
 if (isset($_GET['pid']) && $_GET['action'] == "wishlist") {

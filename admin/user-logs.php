@@ -16,7 +16,7 @@ class UserLog {
     }
 
     // Método para registrar login
-    public function logLogin($email, $ip) {
+    public function logLogin($email, $ip): mixed {
         $status = 1;
         $stmt = $this->con->prepare("INSERT INTO userlog(userEmail, userip, status) VALUES (?, ?, ?)");
         $stmt->bind_param("ssi", $email, $ip, $status);

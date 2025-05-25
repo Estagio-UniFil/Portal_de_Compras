@@ -11,15 +11,35 @@ date_default_timezone_set('America/Sao_Paulo');// change according timezone
 $currentTime = date( 'd-m-Y h:i:s A', time () );
 
 
-if(isset($_POST['submit']))
-{
-	$category=$_POST['category'];
-	$description=$_POST['description'];
-	$id=intval($_GET['id']);
-$sql=mysqli_query($con,"update category set categoryName='$category',categoryDescription='$description',updationDate='$currentTime' where id='$id'");
-$_SESSION['msg']="Categoria Atualizada !!";
+class Category {
+    private mysqli $con;
 
+    public function __construct(mysqli $db) {
+        $this->con = $db;
+    }
+
+    public function updateCategory(int $id, string $name, string $description): bool {
+        $currentTime = date('Y-m-d H:i:s');
+        $stmt = $this->con->prepare("UPDATE category SET categoryName = ?, categoryDescription = ?, updationDate = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $name, $description, $currentTime, $id);
+        return $stmt->execute();
+    }
 }
+
+
+if (isset($_POST['submit'])) {
+    $categoryName = $_POST['category'];
+    $description = $_POST['description'];
+    $id = intval($_GET['id']);
+
+    $categoryManager = new Category($con);
+    if ($categoryManager->updateCategory($id, $categoryName, $description)) {
+        $_SESSION['msg'] = "Categoria atualizada com sucesso!";
+    } else {
+        $_SESSION['msg'] = "Erro ao atualizar categoria.";
+    }
+}
+
 
 ?>
 <!DOCTYPE html>

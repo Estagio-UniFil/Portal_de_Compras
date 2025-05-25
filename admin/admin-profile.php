@@ -5,7 +5,7 @@ if(strlen($_SESSION["aid"])==0)
 header('location:logout.php');
 } else {
 
-//For Adding categories
+
 if(isset($_POST['submit']))
 {
 $contactno=$_POST['cnumber'];
