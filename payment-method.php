@@ -2,9 +2,10 @@
 session_start();
 error_reporting(0);
 include('includes/config.php');
+require_once __DIR__ . '/load_env.php';
 
-const ASAAS_API_KEY = '$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjRhOTE5MDllLTg3NjktNDk4Mi05Y2U1LWM2NDA2ODQxZDUwYzo6JGFhY2hfNjY0MGJjZGUtOTU5Zi00MDEzLWE5NGYtM2RiOWRhNDZmN2Y5';
-const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3';
+define('ASAAS_API_KEY', getenv('ASAAS_API_KEY'));
+define('ASAAS_API_URL', getenv('ASAAS_API_URL'));
 
 // Função para gerar CPF válido aleatório
 function gerarCPF() {

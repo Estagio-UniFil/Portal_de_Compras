@@ -2,7 +2,7 @@
 session_start();
 include('include/config.php');
 
-if(strlen($_SESSION['alogin']) == 0){	
+if (strlen($_SESSION['alogin']) == 0) {    
     header('location:index.php');
     exit();
 }
@@ -10,11 +10,23 @@ if(strlen($_SESSION['alogin']) == 0){
 date_default_timezone_set('America/Sao_Paulo');
 $currentTime = date('d-m-Y h:i:s A', time());
 
-// --- Deletar usuário ---
+// --- Deletar usuário com segurança ---
 if (isset($_GET['del']) && isset($_GET['id'])) {
     $userId = intval($_GET['id']);
-    mysqli_query($con, "DELETE FROM users WHERE id = '$userId'");
-    $_SESSION['delmsg'] = "Usuário deletado com sucesso!";
+
+    $stmt = $con->prepare("DELETE FROM users WHERE id = ?");
+    if ($stmt) {
+        $stmt->bind_param("i", $userId);
+        if ($stmt->execute()) {
+            $_SESSION['delmsg'] = "Usuário deletado com sucesso!";
+        } else {
+            $_SESSION['delmsg'] = "Erro ao deletar: " . $stmt->error;
+        }
+        $stmt->close();
+    } else {
+        $_SESSION['delmsg'] = "Erro na preparação da query: " . $con->error;
+    }
+
     header("Location: manage-users.php");
     exit();
 }
@@ -25,7 +37,7 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
     <meta charset="utf-8" />
     <title>Admin | Governar Usuários</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- Estilos -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
@@ -40,7 +52,7 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
 <div class="wrapper">
     <div class="container">
         <div class="row">
-            <?php include('include/sidebar.php'); ?>				
+            <?php include('include/sidebar.php'); ?>                
             <div class="span9">
                 <div class="content">
                     <div class="module">
@@ -48,7 +60,7 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
                             <h3>Governar Usuários</h3>
                         </div>
                         <div class="module-body table">
-                            <?php if(isset($_SESSION['delmsg']) && $_SESSION['delmsg'] != ""): ?>
+                            <?php if (isset($_SESSION['delmsg']) && $_SESSION['delmsg'] != ""): ?>
                                 <div class="alert alert-danger">
                                     <button type="button" class="close" data-dismiss="alert">×</button>
                                     <strong>Atenção!</strong> <?php echo htmlentities($_SESSION['delmsg']); ?>
@@ -75,8 +87,8 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
                                     <?php
                                     $query = mysqli_query($con, "SELECT * FROM users");
                                     $cnt = 1;
-                                    while($row = mysqli_fetch_array($query)) {
-                                    ?>									
+                                    while ($row = mysqli_fetch_array($query)) {
+                                    ?>                                    
                                         <tr>
                                             <td><?php echo htmlentities($cnt); ?></td>
                                             <td><?php echo htmlentities($row['name']); ?></td>
@@ -107,7 +119,7 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
                                 </tbody>
                             </table>
                         </div>
-                    </div>						
+                    </div>                        
                 </div><!--/.content-->
             </div><!--/.span9-->
         </div>
@@ -123,7 +135,7 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
 <script src="scripts/flot/jquery.flot.js"></script>
 <script src="scripts/datatables/jquery.dataTables.js"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('.datatable-1').dataTable();
         $('.dataTables_paginate').addClass("btn-group datatable-pagination");
         $('.dataTables_paginate > a').wrapInner('<span />');
@@ -133,3 +145,4 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
 </script>
 </body>
 </html>
+
