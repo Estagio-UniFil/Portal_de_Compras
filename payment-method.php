@@ -89,19 +89,22 @@ if (isset($_POST['submit'])) {
 
     // Calcula valor dos pedidos não pagos
     $total = 0.0;
-    $sql = "
-        SELECT o.quantity, p.productPrice
-        FROM orders o
-        JOIN products p ON o.productId = p.id
-        WHERE o.userId = ? AND o.paymentMethod IS NULL
-    ";
+   $sql = "
+    SELECT o.quantity, p.productPrice, p.shippingCharge
+    FROM orders o
+    JOIN products p ON o.productId = p.id
+    WHERE o.userId = ? AND o.paymentMethod IS NULL
+";
     $stmt = $con->prepare($sql);
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $total += $row['quantity'] * $row['productPrice'];
-    }
+   while ($row = $result->fetch_assoc()) {
+    $valorProduto = $row['quantity'] * $row['productPrice'];
+    $valorFrete = $row['quantity'] * $row['shippingCharge'];
+    $total += $valorProduto + $valorFrete;
+}
+
     $stmt->close();
 
     if ($total <= 0) {
@@ -140,12 +143,23 @@ if (isset($_POST['submit'])) {
 
     $pagamento = json_decode($response, true);
 
-    // Exibe a resposta para debug
+    // Verifica se o pagamento foi criado com sucesso
     if ($http_code == 200 && isset($pagamento['invoiceUrl'])) {
-    // Redireciona para o link do boleto ou PIX
-    header("Location: " . $pagamento['invoiceUrl']);
-    exit;
-} else {
+        // Marca os pedidos como pagos com o método escolhido
+        $update = $con->prepare("
+            UPDATE orders
+            SET paymentMethod = ?
+            WHERE userId = ? AND paymentMethod IS NULL
+        ");
+        $update->bind_param("si", $paymethod, $userId);
+        $update->execute();
+        $update->close();
+
+        // Redireciona para o link do boleto ou PIX
+        header("Location: " . $pagamento['invoiceUrl']);
+        exit;
+    }
+
     // Exibe erro amigável
     echo "<h3>Erro ao processar o pagamento.</h3>";
     if (isset($pagamento['errors'])) {
@@ -158,8 +172,8 @@ if (isset($_POST['submit'])) {
         echo "</pre>";
     }
 }
-}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-br">
