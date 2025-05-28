@@ -10,6 +10,7 @@ if (strlen($_SESSION["aid"]) == 0) {
     exit();
 }
 
+
 // Classe para manipular categorias
 class Category {
     private $con;

@@ -1,11 +1,9 @@
 <?php session_start();
 include_once('includes/config.php');
-if(strlen( $_SESSION["aid"])==0)
+if(strlen( $_SESSION["alogin"])==0)
 {   
 header('location:logout.php');
 } else {
-
-
 
 
 ?>
