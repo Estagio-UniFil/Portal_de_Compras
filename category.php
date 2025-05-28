@@ -349,8 +349,9 @@ if ($num > 0) {
                         </a>
                     </h3>
                     <div class="product-price">	
-                        <span class="price">R$ <?php echo htmlentities($row['productPrice']); ?></span>
-                        <span class="price-before-discount">R$ <?php echo htmlentities($row['productPriceBeforeDiscount']); ?></span>
+                       <span class="price">R$ <?php echo number_format($row['productPrice'], 2, ',', '.'); ?></span>
+                        <span class="price-before-discount">R$ <?php echo number_format($row['productPriceBeforeDiscount'], 2, ',', '.'); ?></span>
+
                     </div>
                 </div>
 

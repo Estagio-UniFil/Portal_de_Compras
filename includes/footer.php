@@ -16,7 +16,6 @@
     </div><!-- /.footer-logo -->
 
     <div class="module-body m-t-20">
-        <p class="about-us">.</p>
 
     </div>
 

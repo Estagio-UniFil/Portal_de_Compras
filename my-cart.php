@@ -135,8 +135,6 @@ if (isset($_POST['ordersubmit'])) {
     }
 }
 
-const ASAAS_API_KEY = '$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjRhOTE5MDllLTg3NjktNDk4Mi05Y2U1LWM2NDA2ODQxZDUwYzo6JGFhY2hfNjY0MGJjZGUtOTU5Zi00MDEzLWE5NGYtM2RiOWRhNDZmN2Y5';
-const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3';
 
 // Função para gerar CPF válido aleatório
 function gerarCPF() {
@@ -332,11 +330,7 @@ if (isset($_POST['submit'])) {
 		<!-- Favicon -->
 		<link rel="shortcut icon" href="assets/images/favicon.ico">
 
-		<!-- HTML5 elements and media queries Support for IE8 : HTML5 shim and Respond.js -->
-		<!--[if lt IE 9]>
-			<script src="assets/js/html5shiv.js"></script>
-			<script src="assets/js/respond.min.js"></script>
-		<![endif]-->
+		
 
 	</head>
     <body class="cnt-home">
@@ -408,8 +402,12 @@ if(!empty($_SESSION['cart'])){
 						<div class="shopping-cart-btn">
 							<span class="">
 								<a href="index.php" class="btn btn-upper btn-primary outer-left-xs">Continuar Comprando</a>
-								<input type="submit" name="submit" value="Atualizar Carrinho" class="btn btn-upper btn-primary pull-right outer-right-xs">
-								<input type="submit" name="remove_selected" value="Remover Selecionados" class="btn btn-upper btn-primary pull-right outer-right-xs">
+								<div class="pull-right">
+                                <input type="submit" name="submit" value="Atualizar Carrinho" class="btn btn-upper btn-primary outer-right-xs" style="margin-right: 10px;">
+                            <input type="submit" name="remove_selected" value="Remover Selecionados" class="btn btn-upper btn-primary outer-right-xs">
+                            </div>
+
+
 
 							</span>
 						</div><!-- /.shopping-cart-btn -->
@@ -729,14 +727,52 @@ while($row=mysqli_fetch_array($query))
 		</thead><!-- /thead -->
 		<tbody>
 				<tr>
-					<td>
-						<div class="cart-checkout-btn pull-right">
-							<button type="submit" name="ordersubmit" class="btn btn-primary">FAZER O CHECKOUT</button>
-							
-						
-						</div>
-					</td>
-				</tr>
+  <td>
+    <div class="cart-checkout-btn pull-right">
+      <form method="post" action="payment-method.php">
+        
+        <!-- Checkbox para confirmação -->
+        <input type="checkbox" id="confirm-check" style="display:none;">
+        
+        <!-- Label estilizado como botão para abrir confirmação -->
+        <label for="confirm-check" class="btn btn-primary" style="cursor:pointer;">
+          FAZER O CHECKOUT
+        </label>
+
+        <!-- Mensagem de confirmação que aparece ao marcar o checkbox -->
+        <div class="confirm-message">
+          <p>Você deseja realmente prosseguir para o pagamento?</p>
+          
+          <!-- Botão real que envia o formulário, só aparece se confirmar -->
+          <button type="submit" name="ordersubmit" class="btn btn-success">
+            Confirmar e Enviar
+          </button>
+          
+          <!-- Label para desmarcar e cancelar -->
+          <label for="confirm-check" class="btn btn-secondary" style="cursor:pointer; margin-left:10px;">
+            Cancelar
+          </label>
+        </div>
+      </form>
+    </div>
+  </td>
+</tr>
+
+<style>
+  .confirm-message {
+    display: none;
+    margin-top: 10px;
+  }
+  /* Quando o checkbox está marcado, mostra a confirmação */
+  #confirm-check:checked ~ .confirm-message {
+    display: block;
+  }
+  /* Esconde o label "Fazer o Checkout" quando está confirmado */
+  #confirm-check:checked + label {
+    display: none;
+  }
+</style>
+
 		</tbody><!-- /tbody -->
 	</table>
 	<?php } else {
@@ -745,7 +781,7 @@ echo "Seu carrinho de compras está vazio";
 </div>			</div>
 		</div> 
 		</form>
-<?php echo include('includes/brands-slider.php');?>
+<?php include('includes/brands-slider.php');?>
 </div>
 </div>
 <?php include('includes/footer.php');?>
@@ -766,7 +802,6 @@ echo "Seu carrinho de compras está vazio";
     <script src="assets/js/wow.min.js"></script>
 	<script src="assets/js/scripts.js"></script>
 
-	<!-- For demo purposes – can be removed on production -->
 	
 	<script src="switchstylesheet/switchstylesheet.js"></script>
 	
@@ -783,7 +818,7 @@ echo "Seu carrinho de compras está vazio";
 		   $('.show-theme-options').delay(2000).trigger('click');	
 		});
 	</script>
-	<!-- For demo purposes – can be removed on production : End -->
+
 	<?php if (isset($_SESSION['msg_success']) || isset($_SESSION['msg_error'])): ?>
 <script>
     $(document).ready(function () {

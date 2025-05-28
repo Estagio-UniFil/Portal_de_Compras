@@ -201,18 +201,17 @@ while($result=mysqli_fetch_array($ret))
     </div>
 </div>
 
-< class="row" style="margin-top:1%;">
-<div class="col-2">Disponibilidade do Produto</div>
-<div class="col-6"><   name="productAvailability"  id="productAvailability" class="form-control" required>
-<?php $pa=$row['productAvailability'];
-if($pa=='In Stock'):
-?>
-<option value="In Stock">Em Estoque</option>
-<option value="Out of Stock">Fora de Estoque</option>
-<?php else: ?>
-<option value="Out of Stock">Fora de Estoque</option>    
-<option value="In Stock">Em Estoque</option>
-<?php endif; ?>
+<div class="row" style="margin-top:1%;">
+    <div class="col-2">Disponibilidade do Produto</div>
+    <div class="col-6">
+        <select name="productAvailability" id="productAvailability" class="form-control" required>
+            <?php $pa = $row['productAvailability']; ?>
+            <option value="In Stock" <?php echo ($pa == 'In Stock') ? 'selected' : ''; ?>>Em Estoque</option>
+            <option value="Out of Stock" <?php echo ($pa == 'Out of Stock') ? 'selected' : ''; ?>>Fora de Estoque</option>
+        </select>
+    </div>
+</div>
+
 
 <div class="row" style="margin-top:1%;">
 <div class="col-2">Imagem 1</div>

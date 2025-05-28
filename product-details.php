@@ -5,9 +5,11 @@ error_reporting(0);
 include('includes/config.php');
 
 $orders = new Orders($con);
-
 if (isset($_GET['action']) && $_GET['action'] === "add" && isset($_GET['id'])) {
-    $status = $orders->addItem($_GET['id']);
+   $quantity = isset($_GET['quantity']) ? intval($_GET['quantity']) : 1;
+	$status = $orders->addItem($_GET['id'], $quantity);
+
+
 
     if ($status === "adicionado" || $status === "incrementado") {
         $_SESSION['successmsg'] = "Produto adicionado ao carrinho com sucesso!";
@@ -29,31 +31,35 @@ class Orders {
         $this->con = $db;
     }
 
-    public function addItem($productId) {
-        $id = intval($productId);
+    public function addItem($productId, $quantity = 1) {
+    $id = intval($productId);
+    $quantity = intval($quantity);
+    if ($quantity < 1) {
+        $quantity = 1; // Garantir que a quantidade mínima é 1
+    }
 
-        if (isset($_SESSION['cart'][$id])) {
-            $_SESSION['cart'][$id]['quantity']++;
-            return "incrementado";
+    if (isset($_SESSION['cart'][$id])) {
+        $_SESSION['cart'][$id]['quantity'] += $quantity;
+        return "incrementado";
+    } else {
+        $query = $this->con->prepare("SELECT id, productPrice FROM products WHERE id = ?");
+        $query->bind_param("i", $id);
+        $query->execute();
+        $result = $query->get_result();
+
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $_SESSION['cart'][$row['id']] = [
+                "quantity" => $quantity,
+                "price" => $row['productPrice']
+            ];
+            return "adicionado";
         } else {
-            $query = $this->con->prepare("SELECT id, productPrice FROM products WHERE id = ?");
-            $query->bind_param("i", $id);
-            $query->execute();
-            $result = $query->get_result();
-
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $_SESSION['cart'][$row['id']] = [
-                    "quantity" => 1,
-                    "price" => $row['productPrice']
-                ];
-                return "adicionado";
-            } else {
-                return "invalido";
-            }
+            return "invalido";
         }
     }
-}	
+}
+}
 
 class Wishlist {
 	private $con;
@@ -128,7 +134,6 @@ class Reviews {
 }
 
 // Criando instâncias das classes
-$orders = new Orders($con);
 $wishlist = new Wishlist($con);
 $reviews = new Reviews($con);
 
@@ -515,7 +520,7 @@ $num=mysqli_num_rows($rt);
     <div class="row">
         <div class="col-sm-3">
             <div class="stock-box">
-                <span class="label">Disponibilidade:</span>
+                <span class="label">Disponibilidade :</span>
             </div>  
         </div>
         <div class="col-sm-9">
@@ -536,13 +541,22 @@ $num=mysqli_num_rows($rt);
     </div><!-- /.row -->   
 </div>
 
+<style>
+  /* Espaço maior entre label e valor */
+  .stock-container .value {
+    margin-left: 20px; /* Ajuste conforme quiser */
+    display: inline-block;
+  }
+</style>
+
+
 
 
 <div class="stock-container info-container m-t-10">
 								<div class="row">
 									<div class="col-sm-3">
 										<div class="stock-box">
-											<span class="label">Marca do Produto:</span>
+											<span class="label">Marca do Produto :</span>
 										</div>	
 									</div>
 									<div class="col-sm-9">
@@ -581,8 +595,12 @@ $num=mysqli_num_rows($rt);
 
 									<div class="col-sm-6">
 										<div class="price-box">
-											<span class="price">R$ <?php echo htmlentities($row['productPrice']);?></span>
-											<span class="price-strike">R$<?php echo htmlentities($row['productPriceBeforeDiscount']);?></span>
+											<span class="price">
+                    R$ <?php echo htmlentities(number_format($row['productPrice'], 2, ',', '.')); ?>
+                </span>
+                <span class="price-strike">
+                    R$ <?php echo htmlentities(number_format($row['productPriceBeforeDiscount'], 2, ',', '.')); ?>
+                </span>
 										</div>
 									</div>
 
@@ -608,31 +626,72 @@ $num=mysqli_num_rows($rt);
 
 
 							<div class="quantity-container info-container">
-								<div class="row">
-									
-									<div class="col-sm-2">
-										<span class="label">QTD :</span>
-									</div>
-									
-									<div class="col-sm-2">
-										<div class="cart-quantity">
-											<div class="quant-input">
-								                <div class="arrows">
-								                  <div class="arrow plus gradient"><span class="ir"><i class="icon fa fa-sort-asc"></i></span></div>
-								                  <div class="arrow minus gradient"><span class="ir"><i class="icon fa fa-sort-desc"></i></span></div>
-								                </div>
-								                <input type="text" value="1">
-							              </div>
-							            </div>
-									</div>
+    <div class="row">
+        <div class="col-sm-2">
+            <span class="label">QTD :</span>
+        </div>
+        <div class="col-sm-2">
+            <div class="cart-quantity">
+                <div class="quant-input" style="position: relative; display: inline-block;">
+                    <input type="text" value="1" id="quantity-input" style="width: 50px; text-align: center;">
 
-									<div class="col-sm-7">
-<?php if($row['productAvailability']=='In Stock'){?>
-										<a href="product-details.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="btn btn-primary"><i class="fa fa-shopping-cart inner-right-vs"></i> Adicionar ao Carrinho</a>
-													<?php } else {?>
-							<div class="action" style="color:red">Fora de Estoque</div>
-					<?php } ?>
-									</div>
+                    <div class="arrows" style="position: absolute; right: -20px; top: 0; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                        <div class="arrow plus gradient" style="cursor: pointer; user-select: none;">
+                            <span class="ir"><i class="icon fa fa-sort-asc"></i></span>
+                        </div>
+                        <div class="arrow minus gradient" style="cursor: pointer; user-select: none;">
+                            <span class="ir"><i class="icon fa fa-sort-desc"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-7">
+            <?php if($row['productAvailability'] == 'In Stock') { ?>
+                <a href="#" id="add-to-cart-btn" data-id="<?php echo $row['id']; ?>" class="btn btn-primary">
+                    <i class="fa fa-shopping-cart inner-right-vs"></i> Adicionar ao Carrinho
+                </a>
+            <?php } else { ?>
+                <div class="action" style="color:red">Fora de Estoque</div>
+            <?php } ?>
+        </div>
+    </div><!-- /.row -->
+</div><!-- /.quantity-container -->
+
+<script>
+    // Seleção dos elementos
+    const plusBtn = document.querySelector('.arrow.plus');
+    const minusBtn = document.querySelector('.arrow.minus');
+    const quantityInput = document.getElementById('quantity-input');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+
+    // Incrementar quantidade
+    plusBtn.addEventListener('click', () => {
+        let val = parseInt(quantityInput.value) || 1;
+        quantityInput.value = val + 1;
+    });
+
+    // Decrementar quantidade
+    minusBtn.addEventListener('click', () => {
+        let val = parseInt(quantityInput.value) || 1;
+        if (val > 1) quantityInput.value = val - 1;
+    });
+
+    // Ao clicar em "Adicionar ao Carrinho", redireciona com a quantidade correta
+    addToCartBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        let quantity = parseInt(quantityInput.value);
+        if (isNaN(quantity) || quantity < 1) quantity = 1;
+
+        let productId = this.getAttribute('data-id');
+        let url = `product-details.php?page=product&action=add&id=${productId}&quantity=${quantity}`;
+
+        window.location.href = url;
+    });
+</script>
+
+
 
 									
 								</div><!-- /.row -->

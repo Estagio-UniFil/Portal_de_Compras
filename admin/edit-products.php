@@ -40,18 +40,19 @@ class Product {
         }
 
         $stmt->bind_param(
-            "iissdssddi",
-            $data['category'],
-            $data['subcategory'],
-            $data['productName'],
-            $data['productCompany'],
-            $data['productPrice'],
-            $data['productDescription'],
-            $data['shippingCharge'],
-            $data['productAvailability'],
-            $data['productPriceBeforeDiscount'],
-            $id
-        );
+    	"iissdsssdi", 
+    	$data['category'],                  // i
+    	$data['subcategory'],              // i
+    	$data['productName'],              // s
+    	$data['productCompany'],           // s
+   	 	$data['productPrice'],             // d
+    	$data['productDescription'],       // s
+    	$data['shippingCharge'],           // d ← aqui estava s (errado!)
+    	$data['productAvailability'],      // s
+    	$data['productPriceBeforeDiscount'], // d
+    	$id                                // i
+);
+
 
         return $stmt->execute();
     }
@@ -251,10 +252,9 @@ while($rw=mysqli_fetch_array($query))
 <div class="control-group">
 <label class="control-label" for="basicinput">Disponibilidade do Produto</label>
 <div class="controls">
-<select   name="productAvailability"  id="productAvailability" class="span8 tip" required>
-<option value="<?php echo htmlentities($row['productAvailability']);?>"><?php echo htmlentities($row['productAvailability']);?></option>
-<option value="In Stock">Em Estoque</option>
-<option value="Out of Stock">Fora de Estoque</option>
+<select name="productAvailability" id="productAvailability" class="span8 tip" required>
+    <option value="In Stock" <?php if($row['productAvailability'] == 'In Stock') echo 'selected'; ?>>Em Estoque</option>
+    <option value="Out of Stock" <?php if($row['productAvailability'] == 'Out of Stock') echo 'selected'; ?>>Fora de Estoque</option>
 </select>
 </div>
 </div>
