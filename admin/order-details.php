@@ -1,178 +1,153 @@
-
 <?php
 session_start();
 include('include/config.php');
-if(strlen($_SESSION['alogin'])==0)
-	{	
-header('location:index.php');
-}
-else{
-date_default_timezone_set('America/Sao_Paulo');// change according timezone
-$currentTime = date( 'd-m-Y h:i:s A', time () );
-
-
+if(strlen($_SESSION['alogin'])==0) {	
+    header('location:index.php');
+} else {
+date_default_timezone_set('America/Sao_Paulo');
+$currentTime = date('d-m-Y h:i:s A', time());
+$orderid = intval($_GET['oid']);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Admin| Pedidos Pendentes</title>
-	<link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-	<link type="text/css" href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
-	<link type="text/css" href="css/theme.css" rel="stylesheet">
-	<link type="text/css" href="images/icons/css/font-awesome.css" rel="stylesheet">
-	<link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
-	<script language="javascript" type="text/javascript">
-var popUpWin=0;
-function popUpWindow(URLStr, left, top, width, height)
-{
- if(popUpWin)
-{
-if(!popUpWin.closed) popUpWin.close();
-}
-popUpWin = open(URLStr,'popUpWin', 'toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=no,copyhistory=yes,width='+600+',height='+600+',left='+left+', top='+top+',screenX='+left+',screenY='+top+'');
-}
-
-</script>
+    <meta charset="utf-8" />
+    <title>Admin | Pedidos Pendentes</title>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="css/theme.css" rel="stylesheet">
+    <link href="images/icons/css/font-awesome.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .popup-loading {
+            text-align: center;
+            font-style: italic;
+            color: #888;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-<?php include('include/header.php');?>
+<?php include('include/header.php'); ?>
+<div class="wrapper">
+    <div class="container">
+        <div class="row">
+            <?php include('include/sidebar.php'); ?>
+            <div class="span9">
+                <div class="content">
+                    <div class="module">
+                        <div class="module-head">
+                            <h3>Detalhes dos Pedidos #<?php echo $orderid; ?></h3>
+                        </div>
+                        <div class="module-body table">
+                            <br />
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped display">
+                                    <tbody>
+                                    <?php
+                                    $query = mysqli_query($con, "SELECT orders.id as oid, users.name as username, users.email as useremail, users.contactno as usercontact,
+                                        users.shippingAddress as shippingaddress, users.shippingCity as shippingcity, users.shippingState as shippingstate,
+                                        users.shippingPincode as shippingpincode, products.productName as productname, products.shippingCharge as shippingcharge,
+                                        orders.quantity as quantity, orders.orderDate as orderdate, products.productPrice as productprice,
+                                        billingAddress,billingState,billingCity,billingPincode,products.id as pid,productImage1
+                                        FROM orders 
+                                        JOIN users ON orders.userId = users.id 
+                                        JOIN products ON products.id = orders.productId 
+                                        WHERE orders.id = '$orderid'");
+                                    while($row = mysqli_fetch_array($query)) {
+                                    ?>
+                                        <tr>
+                                            <th>Id do Pedido</th>
+                                            <td><?php echo htmlentities($row['oid']); ?></td>
+                                            <th>Data do Pedido</th>
+                                            <td><?php echo htmlentities($row['orderdate']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Nome de Usuário</th>
+                                            <td><?php echo htmlentities($row['username']); ?></td>
+                                            <th>Email/Contato</th>
+                                            <td><?php echo htmlentities($row['useremail']) . " / " . htmlentities($row['usercontact']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Endereço de Envio</th>
+                                            <td><?php echo htmlentities($row['shippingaddress'] . "," . $row['shippingcity'] . "," . $row['shippingstate'] . "-" . $row['shippingpincode']); ?></td>
+                                            <th>Endereço de Cobrança</th>
+                                            <td><?php echo htmlentities($row['billingAddress'] . "," . $row['billingCity'] . "," . $row['billingState'] . "-" . $row['billingPincode']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Nome do Produto</th>
+                                            <td><?php echo htmlentities($row['productname']); ?></td>
+                                            <th>Imagem</th>
+                                            <td><img src="productimages/<?php echo htmlentities($row['pid']."/".$row['productImage1']); ?>" width="100"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Quantidade</th>
+                                            <td><?php echo htmlentities($row['quantity']); ?></td>
+                                            <th>Preço</th>
+                                            <td><?php echo htmlentities($row['productprice']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Frete</th>
+                                            <td><?php echo htmlentities($row['shippingcharge']); ?></td>
+                                            <th>Total</th>
+                                            <td><?php echo htmlentities($row['quantity'] * $row['productprice'] + $row['shippingcharge']); ?></td>
+                                        </tr>
+                                    <?php } ?>
+                                    </tbody>
+                                </table>
 
-	<div class="wrapper">
-		<div class="container">
-			<div class="row">
-<?php include('include/sidebar.php');?>				
-			<div class="span9">
-					<div class="content">
+                                <div id="history-section">
+                                    <!-- histórico será carregado aqui via AJAX -->
+                                    <div class="popup-loading">Carregando histórico...</div>
+                                </div>
 
-	<div class="module">
-							<div class="module-head">
-								<h3>Detalhes dos Pedidos #<?php echo intval($_GET['oid']);?></h3>
-							</div>
-							<div class="module-body table">
+                                <div style="margin-top: 20px;">
+                                    <button class="btn btn-primary" onclick="openUpdatePopup(<?php echo $orderid; ?>)">Atualizar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- /.content -->
+            </div> <!-- /.span9 -->
+        </div>
+    </div> <!-- /.container -->
+</div> <!-- /.wrapper -->
 
+<?php include('include/footer.php'); ?>
 
-									<br />
+<script>
+function openUpdatePopup(oid) {
+    const popup = window.open(`updateorder.php?oid=${oid}`, 'Atualizar Pedido', 'width=700,height=600');
 
-					<div class="table-responsive">		
-			<table cellpadding="0" cellspacing="0" border="0" class="datatable-1 table table-bordered table-striped	 display table-responsive" >
-	
-<tbody>
-<?php 
-$orderid=intval($_GET['oid']);
-$query=mysqli_query($con,"select orders.id as oid,users.name as username,users.email as useremail,users.contactno as usercontact,users.shippingAddress as shippingaddress,users.shippingCity as shippingcity,users.shippingState as shippingstate,users.shippingPincode as shippingpincode,products.productName as productname,products.shippingCharge as shippingcharge,orders.quantity as quantity,orders.orderDate as orderdate,products.productPrice as productprice,billingAddress,billingState,billingCity,billingPincode,products.id as pid,productImage1,shippingcharge from orders join users on  orders.userId=users.id join products on products.id=orders.productId where orders.id='$orderid'");
-$cnt=1;
-while($row=mysqli_fetch_array($query))
-{
-?>										
-										<tr>
-											<th>Id do Pedido</th>
-											<td><?php echo htmlentities($row['oid']);?></td>
-											<th>Data do Pedido</th>
-											<td><?php echo htmlentities($row['orderdate']);?></td>
-										</tr>
-										<tr>
-											<th>Nome de Usuário</th>
-											<td><?php echo htmlentities($row['username']);?></td>
-											<th>Detalhes de Contato do Usuário</th>
-											<td><?php echo htmlentities($row['useremail']);?>/<?php echo htmlentities($row['usercontact']);?></td>
-										</tr>
-										<tr>
-										<th>Detalhes de Envio do Usuário</th>
-										
-											<td><?php echo htmlentities($row['billingAddress'].",".$row['billingCity'].",".$row['billingState']."-".$row['shippingpincode']);?></td>
+    const interval = setInterval(() => {
+        if (popup.closed) {
+            clearInterval(interval);
+            loadHistory(oid); // atualiza histórico ao fechar popup
+        }
+    }, 500);
+}
 
-												<th>Detalhes de Cobrança do Usuário</th>
-										
-											<td><?php echo htmlentities($row['shippingaddress'].",".$row['shippingcity'].",".$row['shippingstate']."-".$row['billingPincode']);?></td>
-										</tr>
-										<tr>
-											<th>Nome do Produto</th>
-											<td><?php echo htmlentities($row['productname']);?></td>
-												<th>Imagem do Produto</th>
-											<td><img src="productimages/<?php echo htmlentities($row['pid']."/".$row['productImage1']);?>" width="100"></td>
-										</tr>
-										<tr>
-											<th>Quantidade do Produto</th>
-											<td><?php echo htmlentities($row['quantity']);?></td>
-												<th>Preço do Produto</th>
-											<td><?php echo htmlentities($row['productprice']);?></td>
-										</tr>
-										<tr>
-											<th>Taxa de Frete</th>
-										<td>	<?php echo htmlentities($row['shippingcharge']);?></td>
-											<th>Total Geral</th>
-											<td><?php echo htmlentities($row['quantity']*$row['productprice']+$row['shippingcharge']);?></td>
-										</tr>
+function loadHistory(oid) {
+    $.ajax({
+        url: 'fetch-history.php',
+        type: 'GET',
+        data: { oid: oid },
+        success: function(data) {
+            $('#history-section').html(data);
+        },
+        error: function() {
+            $('#history-section').html('<div class="alert alert-danger">Erro ao carregar histórico.</div>');
+        }
+    });
+}
 
-										</tbody>
-								</table>
-								<?php $cnt=$cnt+1; } ?>
+// Carregar histórico ao entrar na página
+$(document).ready(function() {
+    loadHistory(<?php echo $orderid; ?>);
+});
+</script>
 
-<?php 
-$ret = mysqli_query($con,"SELECT * FROM ordertrackhistory WHERE orderId='$orderid'");
-$count=mysqli_num_rows($ret);
-
-?>
-
-			<table cellpadding="0" cellspacing="0" border="0" class="table table-bordered table-striped" style="margin-top:1%;" >
-<?php if($count>0){ ?>
-	<tr>
-		<th colspan="4" style="color:blue; font-size:16px; text-align:center;">Histórico de Pedidos</th>
-	</tr>
-	<tr>
-		<th>Observação</th>
-		<th>Status</th>
-		<th>Data</th>
-	</tr>
-<?php while($row=mysqli_fetch_array($ret)){?>
-		
-    
-      <tr>
-      <td><?php echo $row['remark'];?></td>
-      <td><?php echo $row['status'];?></td>
-      <td><?php echo $row['postingDate'];?></td>
-    </tr>
-   
-   <?php }} ?>
-
-
-
-										<tr>
-											<td colspan="4">    <a href="updateorder.php?oid=<?php echo htmlentities($orderid);?>" title="Update order" target="_blank" class="btn btn-primary">Atualizar</a>
-											</td>
-											</tr>
-										</table>
-
-										
-							</div>
-							</div>
-						</div>						
-
-						
-						
-					</div><!--/.content-->
-				</div><!--/.span9-->
-			</div>
-		</div><!--/.container-->
-	</div><!--/.wrapper-->
-
-<?php include('include/footer.php');?>
-
-	<script src="scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
-	<script src="scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
-	<script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
-	<script src="scripts/flot/jquery.flot.js" type="text/javascript"></script>
-	<script src="scripts/datatables/jquery.dataTables.js"></script>
-	<script>
-		$(document).ready(function() {
-			$('.datatable-1').dataTable();
-			$('.dataTables_paginate').addClass("btn-group datatable-pagination");
-			$('.dataTables_paginate > a').wrapInner('<span />');
-			$('.dataTables_paginate > a:first-child').append('<i class="icon-chevron-left shaded"></i>');
-			$('.dataTables_paginate > a:last-child').append('<i class="icon-chevron-right shaded"></i>');
-		} );
-	</script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
+</html>
 <?php } ?>
