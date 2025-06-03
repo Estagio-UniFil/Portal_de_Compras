@@ -53,28 +53,37 @@ if (isset($_SESSION['id'])) {
 
 // Atualizar endereço de cobrança
 if (isset($_POST['update'])) {
+    // Dados cobrança
     $billingAddress = $_POST['billingaddress'] ?? '';
     $billingState = $_POST['billingstate'] ?? '';
     $billingCity = $_POST['billingcity'] ?? '';
     $billingPincode = $_POST['billingpincode'] ?? '';
 
-    if ($userProfile->updateBillingAddress($billingAddress, $billingState, $billingCity, $billingPincode)) {
-        $_SESSION['msg_success'] = "Endereço de Cobrança atualizado com sucesso!";
+    // Dados envio
+    $shippingAddress = $_POST['shippingaddress'] ?? '';
+    $shippingState = $_POST['shippingstate'] ?? '';
+    $shippingCity = $_POST['shippingcity'] ?? '';
+    $shippingPincode = $_POST['shippingpincode'] ?? '';
+
+    // Atualiza cobrança
+    $successBilling = $userProfile->updateBillingAddress($billingAddress, $billingState, $billingCity, $billingPincode);
+    // Atualiza envio
+    $successShipping = $userProfile->updateShippingAddress($shippingAddress, $shippingState, $shippingCity, $shippingPincode);
+
+    if ($successBilling && $successShipping) {
+        $_SESSION['msg_success'] = "Endereços de Cobrança e Envio atualizados com sucesso!";
+    } elseif ($successBilling) {
+        $_SESSION['msg_success'] = "Endereço de Cobrança atualizado com sucesso! Erro no Endereço de Envio.";
+    } elseif ($successShipping) {
+        $_SESSION['msg_success'] = "Endereço de Envio atualizado com sucesso! Erro no Endereço de Cobrança.";
     } else {
-        $_SESSION['msg_error'] = "Erro ao atualizar o endereço de cobrança.";
+        $_SESSION['msg_error'] = "Erro ao atualizar os endereços.";
     }
 
     header("Location: ".$_SERVER['PHP_SELF']);
     exit();
 }
 
-if (isset($_SESSION['msg_success'])): ?>
-    <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>");
-        });
-    </script>
-<?php unset($_SESSION['msg_success']); endif; 
 
 error_reporting(0);
 include('includes/config.php');
@@ -387,6 +396,22 @@ sleep(3);
 
 	</head>
     <body class="cnt-home">
+
+<?php if (isset($_SESSION['msg_success'])): ?>
+<script>
+    $(document).ready(function() {
+        toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>", null, {timeOut: 2000});
+    });
+</script>
+<?php unset($_SESSION['msg_success']); endif; ?>
+
+<?php if (isset($_SESSION['msg_error'])): ?>
+<script>
+    $(document).ready(function() {
+        toastr.error("<?php echo addslashes($_SESSION['msg_error']); ?>", null, {timeOut: 2000});
+    });
+</script>
+<?php unset($_SESSION['msg_error']); endif; ?>
 
 
 
