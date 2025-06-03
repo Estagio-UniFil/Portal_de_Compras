@@ -281,48 +281,16 @@ while($row=mysqli_fetch_array($query))
 
 	<div class="form-group">
     <label class="info-title" for="billingpincode">CEP de Cobrança <span>*</span></label>
-    
-    <!-- Campo visível (com máscara e asteriscos) -->
     <input 
-        type="text"
+        type="password" 
         class="form-control unicase-form-control text-input" 
-        id="cepMasked"
-        required
-        maxlength="9"
-        oninput="handleCepInput(this)"
-    >
-
-    <!-- Campo oculto (com valor real) -->
-    <input 
-        type="hidden" 
         id="billingpincode" 
-        name="billingpincode"
-        value="<?php echo $row['billingPincode']; ?>"
-    >
-</div>
-
-<script>
-function handleCepInput(input) {
-    let raw = input.value.replace(/\D/g, ''); // remove tudo que não é número
-    if (raw.length > 8) raw = raw.substring(0, 8);
-
-    // Formatar para 00000-000
-    let formatted = raw;
-    if (raw.length > 5) {
-        formatted = raw.substring(0, 5) + '-' + raw.substring(5);
-    }
-
-    // Criar uma string mascarada (com asteriscos)
-    let masked = '*'.repeat(formatted.length);
-
-    // Exibir a máscara no campo
-    input.value = masked;
-
-    // Atualizar o valor real no campo escondido
-    document.getElementById('billingpincode').value = formatted;
-}
-</script>
-
+        name="billingpincode" 
+        required 
+        value="<?php echo $row['billingPincode']; ?>" 
+        pattern="\d{5}-\d{3}" 
+        title="Digite o CEP no formato 00000-000"
+        oninput="mascaraCep(this)"
     >
 </div>
 
@@ -424,46 +392,18 @@ while($row=mysqli_fetch_array($query))
 
  <div class="form-group">
     <label class="info-title" for="shippingpincode">CEP de Envio <span>*</span></label>
-
-    <!-- Campo visível (mascarado) -->
     <input 
-        type="text"
+        type="password" 
         class="form-control unicase-form-control text-input" 
-        id="shippingCepMasked"
-        required
-        maxlength="9"
-        oninput="handleCepInput(this, 'shippingpincode')"
-    >
-
-    <!-- Campo oculto com o valor real -->
-    <input 
-        type="hidden" 
         id="shippingpincode" 
-        name="shippingpincode"
-        value="<?php echo $row['shippingPincode']; ?>"
+        name="shippingpincode" 
+        required 
+        value="<?php echo $row['shippingPincode']; ?>" 
+        pattern="\d{5}-\d{3}" 
+        title="Digite o CEP no formato 00000-000"
+        oninput="mascaraCep(this)"
     >
 </div>
-
-<!-- Script para aplicar a máscara com asteriscos -->
-<script>
-function handleCepInput(input, hiddenId) {
-    let raw = input.value.replace(/\D/g, ''); // remove não numéricos
-    if (raw.length > 8) raw = raw.substring(0, 8);
-
-    // Formatar como 00000-000
-    let formatted = raw;
-    if (raw.length > 5) {
-        formatted = raw.substring(0, 5) + '-' + raw.substring(5);
-    }
-
-    // Gerar string com asteriscos do mesmo tamanho
-    let masked = '*'.repeat(formatted.length);
-    input.value = masked;
-
-    // Atualizar campo oculto com o valor real formatado
-    document.getElementById(hiddenId).value = formatted;
-}
-</script>
 
 
 					  <button type="submit" name="shipupdate" class="btn-upper btn btn-primary checkout-page-button">Atualizar</button>
