@@ -41,10 +41,27 @@ $user = new Users($con);
 
 if (isset($_POST['change'])) {
     $email = $_POST['email'];
-    $contact = $_POST['contact'];
+    $contact = preg_replace('/[^0-9]/', '', $_POST['contact']); // Remove não dígitos
     $newPassword = $_POST['password'];
+    $confirmPassword = $_POST['confirmpassword'];
 
-    if ($user->resetPassword($email, $contact, $newPassword)) {
+    // Validação de número de contato
+    if (!preg_match('/^\d{11}$/', $contact)) {
+        $_SESSION['errmsg'] = "O número de contato deve conter DDD + número (11 dígitos).";
+        header("Location: forgot-password.php");
+        exit();
+    }
+
+    // Validação de senha
+	if ($newPassword !== $confirmPassword) {
+		$_SESSION['errmsg'] = "As senhas digitadas não são iguais. Por favor, verifique e tente novamente.";
+		header("Location: forgot-password.php");
+		exit();
+	}
+
+    // Troca a senha se tudo estiver correto
+    if ($user->forgetPassword($email, $contact, $newPassword)) {
+        $_SESSION['errmsg'] = "Senha alterada com sucesso!";
         header("Location: forgot-password.php");
         exit();
     } else {
@@ -52,6 +69,7 @@ if (isset($_POST['change'])) {
         exit();
     }
 }
+
 ?>
 
 
@@ -103,15 +121,26 @@ if (isset($_POST['change'])) {
 		<!-- Favicon -->
 		<link rel="shortcut icon" href="assets/images/favicon.ico">
 <script type="text/javascript">
-function valid()
-{
- if(document.register.password.value!= document.register.confirmpassword.value)
-{
-alert("Password and Confirm Password Field do not match  !!");
-document.register.confirmpassword.focus();
-return false;
-}
-return true;
+function valid() {
+    var password = document.getElementById("password").value;
+    var confirmPassword = document.getElementById("confirmpassword").value;
+	var flash = document.getElementById("flash-message");
+	if (password !== confirmPassword) {
+		if (!flash) {
+			flash = document.createElement("div");
+			flash.id = "flash-message";
+			flash.className = "flash-error";
+			document.body.appendChild(flash);
+		}
+		flash.textContent = "As senhas digitadas não são iguais. Por favor, verifique e tente novamente.";
+		flash.style.display = "block";
+		document.getElementById("confirmpassword").focus();
+		setTimeout(function() {
+			flash.style.display = "none";
+		}, 2000);
+		return false;
+	}
+	return true;
 }
 </script>
 	</head>
@@ -151,15 +180,41 @@ return true;
 				<!-- Sign-in -->			
 <div class="col-md-6 col-sm-6 sign-in">
 	<h4 class="">Esqueceu sua senha</h4>
-	<form class="register-form outer-top-xs" name="register" method="post">
-	<span style="color:red;" >
-<?php
-echo htmlentities($_SESSION['errmsg']);
-?>
-<?php
-echo htmlentities($_SESSION['errmsg']="");
-?>
-	</span>
+	<form class="register-form outer-top-xs" name="register" method="post" onsubmit="return valid();">
+
+	<?php if (!empty($_SESSION['errmsg'])): ?>
+<div id="flash-message" class="flash-error">
+    <?php
+        echo htmlentities($_SESSION['errmsg']);
+        $_SESSION['errmsg'] = ""; // limpa após exibir
+    ?>
+</div>
+<?php endif; ?>
+
+
+<style>
+.flash-error {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #f44336;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    font-weight: bold;
+    z-index: 9999;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    animation: fadeOut 2s ease-in-out forwards;
+    animation-delay: 2s;
+}
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+</style>
 		<div class="form-group">
 		    <label class="info-title" for="exampleInputEmail1">Endereço de Email <span>*</span></label>
 		    <input type="email" name="email" class="form-control unicase-form-control text-input" id="exampleInputEmail1" required >
@@ -167,23 +222,17 @@ echo htmlentities($_SESSION['errmsg']="");
 
 
 		<div class="form-group">
-    	<label class="info-title" for="contactno">Número de Contato <span>*</span></label>
-		<input type="text" 
-			class="form-control unicase-form-control text-input" 
-			id="contactno" name="contact" 
-			placeholder="9XXXX-XXXX"
-			title="Formato válido: 9XXXX-XXXX"
-			pattern="9\d{4}-\d{4}"
-			maxlength="10"
-			onblur="checkContactAvailability()" 
-			required
-			style="font-family: 'password'; -webkit-text-security: disc; text-security: disc;">
-		<span id="contact-status" style="font-size:12px;"></span>
-		<script>
-		$(document).ready(function(){
-			$('#contactno').mask('90000-0000');
-		});
-		</script>
+    <label class="info-title" for="contactno">Número de Contato <span>*</span></label>
+    <input type="text"
+    class="form-control unicase-form-control text-input"
+    id="contactno"
+    name="contact"
+    placeholder="(43) 99999-9999"
+    maxlength="15"
+    required>
+    <small class="text-muted">Digite DDD + número (ex: 43999999999)</small>
+</div>
+
 
 
 <div class="form-group">
@@ -253,6 +302,16 @@ $(document).ready(function(){
 });
 </script>
 	
+
+<script>
+setTimeout(function() {
+    var flash = document.getElementById("flash-message");
+    if (flash) {
+        flash.style.display = "none";
+    }
+}, 2000);
+</script>
+
 
 </body>
 </html>
