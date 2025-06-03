@@ -11,6 +11,17 @@ class Users {
         $this->con = $db;
     }
 
+    // Método para verificar se o e-mail já está registrado
+    public function checkEmailExists($email) {
+        $stmt = $this->con->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->bind_result($count);
+        $stmt->fetch();
+
+        return $count > 0;  // Retorna true se o e-mail já existir, caso contrário false
+    }
+
     // Método para registrar um novo usuário
     public function createAccount($name, $email, $contactno, $password) {
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
@@ -74,13 +85,19 @@ if (isset($_POST['submit'])) {
     } elseif (!preg_match('/^\d{11}$/', $contactno)) {
         $error = "O número de contato deve conter DDD + número (11 dígitos)";
     } else {
-        if ($user->createAccount($name, $email, $contactno, $password)) {
-            $_SESSION['msg'] = "Você foi registrado com sucesso!";
-            $_SESSION['msg_type'] = "success";
-            header("Location: login.php");
-            exit();
+        // Verificar se o e-mail já está registrado
+        if ($user->checkEmailExists($email)) {
+            $error = "Este e-mail já está registrado. Tente outro.";
         } else {
-            $error = "O registro falhou. Tente novamente.";
+            // Registrar o usuário
+            if ($user->createAccount($name, $email, $contactno, $password)) {
+                $_SESSION['msg'] = "Você foi registrado com sucesso!";
+                $_SESSION['msg_type'] = "success";
+                header("Location: login.php");
+                exit();
+            } else {
+                $error = "O registro falhou. Tente novamente.";
+            }
         }
     }
 }
@@ -99,6 +116,8 @@ if (isset($_POST['login'])) {
     }
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="pt-BR">
