@@ -44,6 +44,40 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
     <link href="css/theme.css" rel="stylesheet">
     <link href="images/icons/css/font-awesome.css" rel="stylesheet">
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
+
+    <!-- Estilos adicionais para compactar tabela -->
+    <style>
+        /* Fonte menor e padding reduzido para as células da tabela */
+        table.dataTable tbody td, 
+        table.dataTable thead th {
+            padding: 4px 8px !important;
+            font-size: 12px !important;
+            white-space: nowrap; /* evita quebra de linha */
+            vertical-align: middle !important;
+        }
+
+        /* Ajustar largura mínima da tabela para caber o conteúdo */
+        table.dataTable {
+            width: 100% !important;
+            table-layout: auto;
+        }
+
+        /* Tornar o container da tabela responsivo com scroll horizontal */
+        .dataTables_wrapper {
+            overflow-x: auto;
+        }
+
+        /* Esconder algumas colunas em telas menores para melhorar visual */
+        @media (max-width: 1024px) {
+            /* Esconder colunas Endereço de Entrega e Endereço de Cobrança */
+            table.dataTable td:nth-child(5),
+            table.dataTable th:nth-child(5),
+            table.dataTable td:nth-child(6),
+            table.dataTable th:nth-child(6) {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -136,13 +170,29 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
 <script src="scripts/datatables/jquery.dataTables.js"></script>
 <script>
     $(document).ready(function () {
-        $('.datatable-1').dataTable();
+        $('.datatable-1').DataTable({
+            "pagingType": "simple_numbers", // paginação mais compacta
+            "lengthMenu": [5, 10, 20],      // opções para quantidade de linhas por página
+            "pageLength": 5,                // padrão 5 linhas por página
+            "autoWidth": false,
+            "responsive": true,
+            "language": {
+                "infoFiltered": "(filtrado de _MAX_ registros no total)",
+                "paginate": {
+                    "previous": "Anterior",
+                    "next": "Próximo"
+                }
+            }
+        });
+
         $('.dataTables_paginate').addClass("btn-group datatable-pagination");
         $('.dataTables_paginate > a').wrapInner('<span />');
         $('.dataTables_paginate > a:first-child').append('<i class="icon-chevron-left shaded"></i>');
         $('.dataTables_paginate > a:last-child').append('<i class="icon-chevron-right shaded"></i>');
     });
 </script>
+
 </body>
 </html>
+
 

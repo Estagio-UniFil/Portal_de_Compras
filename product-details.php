@@ -200,7 +200,26 @@ if (isset($_POST['submit'])) {
   font-weight: bold;
   cursor: pointer;
 }
+
+.stock-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.stock-box .label {
+    min-width: 100px; /* Mesma largura para todas as labels */
+    font-weight: bold;
+    margin-right: 0px;
+}
+
+.stock-box .value {
+    display: inline-block;
+}
+
 </style>
+
+
 
 	<head>
 		<meta charset="utf-8">
@@ -518,13 +537,9 @@ $num=mysqli_num_rows($rt);
 <?php } ?>
 <div class="stock-container info-container m-t-10">
     <div class="row">
-        <div class="col-sm-3">
+        <div class="col-sm-12">
             <div class="stock-box">
                 <span class="label">Disponibilidade :</span>
-            </div>  
-        </div>
-        <div class="col-sm-9">
-            <div class="stock-box">
                 <span class="value">
                     <?php 
                     if ($row['productAvailability'] == "In Stock") {
@@ -532,14 +547,15 @@ $num=mysqli_num_rows($rt);
                     } elseif ($row['productAvailability'] == "Out of Stock") {
                         echo "Fora de Estoque";
                     } else {
-                        echo htmlentities($row['productAvailability']); // Caso tenha outro valor
+                        echo htmlentities($row['productAvailability']);
                     }
                     ?>
                 </span>
             </div>  
         </div>
-    </div><!-- /.row -->   
+    </div>
 </div>
+
 
 <style>
   /* Espaço maior entre label e valor */
@@ -552,42 +568,40 @@ $num=mysqli_num_rows($rt);
 
 
 
-<div class="stock-container info-container m-t-10">
-								<div class="row">
-									<div class="col-sm-3">
-										<div class="stock-box">
-											<span class="label">Marca do Produto :</span>
-										</div>	
-									</div>
-									<div class="col-sm-9">
-										<div class="stock-box">
-											<span class="value"><?php echo htmlentities($row['productCompany']);?></span>
-										</div>	
-									</div>
-								</div><!-- /.row -->	
-							</div>
-
-
-							<div class="stock-container info-container m-t-10">
+<div class="stock-container info-container m-t-9">
     <div class="row">
-        <div class="col-sm-3">
+        <div class="col-sm-12">
             <div class="stock-box">
-                <span class="label">Taxa de Frete :</span>
+                <span class="label">Marca do Produto :</span>
+                <span class="value"><?php echo htmlentities($row['productCompany']);?></span>
             </div>  
         </div>
-        <div class="col-sm-9">
+    </div>
+</div>
+
+
+
+
+
+	<div class="stock-container info-container m-t-10">
+    <div class="row">
+        <div class="col-sm-12">
             <div class="stock-box">
+                <span class="label">Taxa de Frete :</span>
                 <span class="value">
-                    <?php if($row['shippingCharge'] == 0) {
+                    <?php 
+                    if ($row['shippingCharge'] == 0) {
                         echo "Grátis";
                     } else {
                         echo "R$ " . number_format($row['shippingCharge'], 2, ',', '.'); 
-                    } ?>
+                    }
+                    ?>
                 </span>
             </div>  
         </div>
     </div><!-- /.row -->   
 </div>
+
 
 							<div class="price-container info-container m-t-20">
 								<div class="row">
@@ -648,9 +662,9 @@ $num=mysqli_num_rows($rt);
         </div>
 
         <div class="col-sm-7">
-            <?php if($row['productAvailability'] == 'In Stock') { ?>
-                <a href="#" id="add-to-cart-btn" data-id="<?php echo $row['id']; ?>" class="btn btn-primary">
-                    <i class="fa fa-shopping-cart inner-right-vs"></i> Adicionar ao Carrinho
+    <?php if($row['productAvailability'] == 'In Stock') { ?>
+        <a href="#" id="add-to-cart-btn" data-id="<?php echo $row['id']; ?>" class="btn btn-primary" style="margin-left: 10px;">
+            <i class="fa fa-shopping-cart inner-right-vs"></i> Adicionar ao Carrinho
                 </a>
             <?php } else { ?>
                 <div class="action" style="color:red">Fora de Estoque</div>

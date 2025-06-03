@@ -20,67 +20,36 @@ class Users {
     }
 
     // Atualiza endereço de cobrança
-   public function updateBillingAddress($address, $state, $city, $pincode) {
-    // Remove tudo que não for número
-    $pincode = preg_replace('/\D/', '', $pincode);
-
-    // Garante que o CEP tem exatamente 8 dígitos
-    if (strlen($pincode) === 8) {
-        // Aplica a máscara 00000-000
-        $pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5);
-    } else {
-        // Se for inválido, defina como null ou lance exceção
-        // Aqui você pode customizar o tratamento:
-        return false; // ou throw new Exception("CEP inválido");
+    public function updateBillingAddress($address, $state, $city, $pincode) {
+		$pincode = preg_replace('/\D/', '', $pincode);
+		if (strlen($pincode) === 8) {
+			$pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5, 3);
+		}
+        $stmt = $this->con->prepare("UPDATE users SET billingAddress=?, billingState=?, billingCity=?, billingPincode=? WHERE id=?");
+        $stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
+        return $stmt->execute();
     }
-
-    // Atualiza no banco
-    $stmt = $this->con->prepare("
-        UPDATE users 
-        SET billingAddress = ?, billingState = ?, billingCity = ?, billingPincode = ? 
-        WHERE id = ?
-    ");
-    $stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
-
-    return $stmt->execute();
-}
-
 
     // Atualiza endereço de envio
 	public function updateShippingAddress($address, $state, $city, $pincode) {
-    // Remove tudo que não for número
-    $pincode = preg_replace('/\D/', '', $pincode);
-
-    // Valida se tem 8 dígitos
-    if (strlen($pincode) === 8) {
-        // Aplica a máscara 00000-000
-        $pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5);
-    } else {
-        // Tratamento de erro: CEP inválido
-        return false; // ou lançar exceção, dependendo da lógica da sua aplicação
-    }
-
-    // Atualiza no banco
-    $stmt = $this->con->prepare("
-        UPDATE users 
-        SET shippingAddress = ?, shippingState = ?, shippingCity = ?, shippingPincode = ? 
-        WHERE id = ?
-    ");
-    $stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
-
-    return $stmt->execute();
-}
-
-}
+		// Garante que o CEP está no formato 00000-000
+		$pincode = preg_replace('/\D/', '', $pincode);
+		if (strlen($pincode) === 8) {
+			$pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5, 3);
+		}
+		$stmt = $this->con->prepare("UPDATE users SET shippingAddress=?, shippingState=?, shippingCity=?, shippingPincode=? WHERE id=?");
+		$stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
+		return $stmt->execute();
+	}
+	}
 
 // Criar instância da classe Users
 if (isset($_SESSION['id'])) {
     $userId = $_SESSION['id'];
     $userProfile = new Users($con, $userId);
 } else {
-    $userProfile = null; // ou outra lógica caso não esteja logado
+    $userProfile = null;
 }
-
 
 // Atualizar endereço de cobrança
 if (isset($_POST['update'])) {
@@ -99,42 +68,43 @@ if (isset($_POST['update'])) {
     exit();
 }
 
-// --- Atualizar quantidades no carrinho ---
 if (isset($_SESSION['msg_success'])): ?>
-	<script>
-	  window.addEventListener('DOMContentLoaded', function() {
-		toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>");
-	  });
-	</script>
-	<?php unset($_SESSION['msg_success']); ?>
-	<?php endif; 
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            toastr.success("<?php echo addslashes($_SESSION['msg_success']); ?>");
+        });
+    </script>
+<?php unset($_SESSION['msg_success']); endif; 
+
 error_reporting(0);
 include('includes/config.php');
-if(isset($_POST['submit']))
-		if (!empty($_SESSION['cart'])) {
-			foreach ($_POST['quantity'] as $key => $val) {
-				if ($val == 0) {
-					unset($_SESSION['cart'][$key]);
-				} else {
-					$_SESSION['cart'][$key]['quantity'] = $val;
-				}
-			}
-			$_SESSION['msg_success'] = "Seu carrinho foi atualizado com sucesso!";
-			header("Location: my-cart.php");
-			exit();
-		}
-// Code for Remove a Product from Cart
-if (isset($_POST['remove_selected']) && isset($_POST['remove_code']) && !empty($_SESSION['cart'])) {
-	foreach ($_POST['remove_code'] as $key) {
-		unset($_SESSION['cart'][$key]);
-	}
-	$_SESSION['msg_success'] = "Itens removidos do carrinho com sucesso!";
-	header("Location: my-cart.php");
-	exit();
+
+if(isset($_POST['submit'])) {
+    if (!empty($_SESSION['cart'])) {
+        foreach ($_POST['quantity'] as $key => $val) {
+            if ($val == 0) {
+                unset($_SESSION['cart'][$key]);
+            } else {
+                $_SESSION['cart'][$key]['quantity'] = $val;
+            }
+        }
+        $_SESSION['msg_success'] = "Seu carrinho foi atualizado com sucesso!";
+        header("Location: my-cart.php");
+        exit();
+    }
 }
 
+// Remover itens selecionados do carrinho
+if (isset($_POST['remove_selected']) && isset($_POST['remove_code']) && !empty($_SESSION['cart'])) {
+    foreach ($_POST['remove_code'] as $key) {
+        unset($_SESSION['cart'][$key]);
+    }
+    $_SESSION['msg_success'] = "Itens removidos do carrinho com sucesso!";
+    header("Location: my-cart.php");
+    exit();
+}
 
-// --- Submeter pedido ---
+// Submeter pedido
 if (isset($_POST['ordersubmit'])) {
     if (strlen($_SESSION['login']) == 0) {
         header('location:login.php');
@@ -162,7 +132,6 @@ if (isset($_POST['ordersubmit'])) {
     }
 }
 
-
 // Função para gerar CPF válido aleatório
 function gerarCPF() {
     $n = [];
@@ -188,6 +157,39 @@ function gerarCPF() {
     return implode('', $n) . $d1 . $d2;
 }
 
+// Função para atualizar cliente Asaas
+function atualizarClienteAsaas($asaasCustomerId, $nomeAtual, $email) {
+    $dadosAtualizacao = [
+        'name' => $nomeAtual,
+        'email' => $email,
+    ];
+
+    error_log("Enviando dados para atualização do cliente Asaas: " . json_encode($dadosAtualizacao));
+
+    $curl = curl_init(ASAAS_API_URL . '/customers/' . $asaasCustomerId);
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => "PUT",
+        CURLOPT_POSTFIELDS => json_encode($dadosAtualizacao),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'User-Agent: Portal de Compras',
+            'access_token: ' . ASAAS_API_KEY
+        ],
+    ]);
+    $resp = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    if ($http_code == 200) {
+        return true;
+    } else {
+        error_log("Erro ao atualizar cliente Asaas (HTTP $http_code): " . $resp);
+        return false;
+    }
+}
+
+
 // Verifica se o usuário está logado
 if (strlen($_SESSION['login']) == 0) {
     header('location:login.php');
@@ -197,53 +199,76 @@ if (strlen($_SESSION['login']) == 0) {
 if (isset($_POST['submit'])) {
     $paymethod = $_POST['paymethod'];
     $userId = $_SESSION['id'];
+    $nomeAtualizado = trim($_POST['nome']);
 
     // Busca dados do usuário
-    $stmt = $con->prepare("SELECT name, email, asaas_customer_id FROM users WHERE id = ?");
+   $stmt = $con->prepare("SELECT name, email, asaas_customer_id FROM users WHERE id = ?");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
-    $stmt->bind_result($nome, $email, $asaasCustomerId);
+    $stmt->bind_result($nomeAtual, $email, $asaasCustomerId);
     $stmt->fetch();
     $stmt->close();
 
-    // Se o cliente não existir no Asaas, cria agora
-    if (empty($asaasCustomerId)) {
-        $cpf = gerarCPF();
-        $dadosCliente = [
-            'name' => $nome,
-            'email' => $email,
-            'cpfCnpj' => $cpf
-        ];
+     // Atualiza nome no banco se necessário
+// Atualiza nome no banco se necessário
+if (!empty($nomeAtualizado) && $nomeAtualizado !== $nomeAtual) {
+    $stmt = $con->prepare("UPDATE users SET name = ? WHERE id = ?");
+    $stmt->bind_param("si", $nomeAtualizado, $userId);
+    $stmt->execute();
+    $stmt->close();
+    $nomeAtual = $nomeAtualizado;
+}
 
-        $curl = curl_init(ASAAS_API_URL . '/customers');
-        curl_setopt_array($curl, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($dadosCliente),
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'User-Agent: Portal de Compras',
-                'access_token: ' . ASAAS_API_KEY
-            ],
-        ]);
-        $respCliente = curl_exec($curl);
-        $clienteData = json_decode($respCliente, true);
-        curl_close($curl);
+$cpf = gerarCPF(); // Aqui, antes da criação
 
-        if (isset($clienteData['id'])) {
-            $asaasCustomerId = $clienteData['id'];
-            // Salva no banco
-            $stmt = $con->prepare("UPDATE users SET asaas_customer_id = ? WHERE id = ?");
-            $stmt->bind_param("si", $asaasCustomerId, $userId);
-            $stmt->execute();
-            $stmt->close();
-        } else {
-            echo json_encode(['erro' => 'Falha ao criar cliente', 'resposta' => $clienteData]);
-            exit;
-        }
+// Se não tiver cliente no Asaas, cria
+if (empty($asaasCustomerId)) {
+    $dadosCliente = [
+        'name' => $nomeAtual,
+        'email' => $email,
+        'cpfCnpj' => $cpf
+    ];
+
+    $curl = curl_init(ASAAS_API_URL . '/customers');
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($dadosCliente),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'User-Agent: Portal de Compras',
+            'access_token: ' . ASAAS_API_KEY
+        ],
+    ]);
+    $respCliente = curl_exec($curl);
+    $clienteData = json_decode($respCliente, true);
+    curl_close($curl);
+
+    if (isset($clienteData['id'])) {
+        $asaasCustomerId = $clienteData['id'];
+        $stmt = $con->prepare("UPDATE users SET asaas_customer_id = ? WHERE id = ?");
+        $stmt->bind_param("si", $asaasCustomerId, $userId);
+        $stmt->execute();
+        $stmt->close();
+    } else {
+        echo json_encode(['erro' => 'Falha ao criar cliente', 'resposta' => $clienteData]);
+        exit;
     }
+}
 
-    // Calcula valor dos pedidos não pagos
+// Agora sim, atualiza cliente existente
+$resultadoAtualizacao = atualizarClienteAsaas($asaasCustomerId, $nomeAtual, $email);
+
+
+if (!$resultadoAtualizacao) {
+    error_log("Falha na atualização do cliente no Asaas para o usuário $userId");
+    echo json_encode(['erro' => 'Falha ao atualizar cliente no Asaas. Verifique os logs.']);
+    exit;
+}
+
+sleep(3);
+
+    // Calcula total dos pedidos sem pagamento
     $total = 0.0;
     $sql = "
         SELECT o.quantity, p.productPrice
@@ -271,8 +296,9 @@ if (isset($_POST['submit'])) {
     }
     $billingType = $validPaymentMethods[$paymethod];
 
-    // Cria a cobrança
+    // Criar cobrança no Asaas
     $dadosCobranca = [
+        'name' => $nomeAtual,
         'customer' => $asaasCustomerId,
         'billingType' => $billingType,
         'value' => number_format($total, 2, '.', ''),
@@ -296,7 +322,6 @@ if (isset($_POST['submit'])) {
 
     $pagamento = json_decode($response, true);
 
-    // Exibe a resposta para debug
     header('Content-Type: application/json');
     echo json_encode([
         'http_code' => $http_code,
@@ -306,6 +331,7 @@ if (isset($_POST['submit'])) {
     exit;
 }
 ?>
+
 
 
 
@@ -361,6 +387,9 @@ if (isset($_POST['submit'])) {
 
 	</head>
     <body class="cnt-home">
+
+
+
 
 <script>
 $(document).ready(function () {
@@ -766,19 +795,52 @@ while($row=mysqli_fetch_array($query))
           FAZER O CHECKOUT
         </label>
 
-        <!-- Mensagem de confirmação que aparece ao marcar o checkbox -->
-        <div class="confirm-message">
-          <p>Você deseja realmente prosseguir para o pagamento?</p>
-          
-          <!-- Botão real que envia o formulário, só aparece se confirmar -->
-          <button type="submit" name="ordersubmit" class="btn btn-success">
-            Confirmar e Enviar
-          </button>
-          
-          <!-- Label para desmarcar e cancelar -->
-          <label for="confirm-check" class="btn btn-secondary" style="cursor:pointer; margin-left:10px;">
-            Cancelar
-          </label>
+
+       <style>
+.confirm-message {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.confirm-message p {
+  flex-basis: 100%;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.confirm-message button,
+.confirm-message label {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+}
+</style>
+
+<div class="confirm-message">
+  <p>Você deseja realmente prosseguir para o pagamento?</p>
+
+  <button type="submit" name="ordersubmit" class="btn btn-success">
+    Confirmar e Enviar
+  </button>
+
+  <label for="confirm-check" class="btn btn-secondary" style="cursor:pointer;">
+    Cancelar
+  </label>
+</div>
+
+
         </div>
       </form>
     </div>

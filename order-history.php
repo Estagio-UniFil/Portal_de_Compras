@@ -58,10 +58,28 @@ popUpWin = open(URLStr,'popUpWin', 'toolbar=no,location=no,directories=no,status
 
 </script>
 
+	<style>
+	/* Ajustes para a tabela caber melhor na tela do notebook */
+	.table-responsive table {
+	    font-size: 13px;
+	    min-width: 950px; /* largura mínima para a tabela */
+	}
+
+	.table > thead > tr > th,
+	.table > tbody > tr > td {
+	    padding: 8px 10px;
+	    white-space: nowrap; /* evita quebra de linha nas células */
+	    vertical-align: middle;
+	}
+
+	.table-responsive {
+	    overflow-x: auto;
+	    -webkit-overflow-scrolling: touch;
+	}
+	</style>
+
 	</head>
     <body class="cnt-home">
-	
-		
 	
 		<!-- ============================================== HEADER ============================================== -->
 <header class="header-style-1">
@@ -70,6 +88,7 @@ popUpWin = open(URLStr,'popUpWin', 'toolbar=no,location=no,directories=no,status
 <?php include('includes/menu-bar.php');?>
 </header>
 <!-- ============================================== HEADER : END ============================================== -->
+
 <div class="breadcrumb">
 	<div class="container">
 		<div class="breadcrumb-inner">
@@ -95,7 +114,6 @@ popUpWin = open(URLStr,'popUpWin', 'toolbar=no,location=no,directories=no,status
 					<th class="cart-romove item">#</th>
 					<th class="cart-description item">Imagem</th>
 					<th class="cart-product-name item">Nome do Produto</th>
-			
 					<th class="cart-qty item">Quantidade</th>
 					<th class="cart-sub-total item">Preço por unidade</th>
 					<th class="cart-sub-total item">Taxa de Frete</th>
@@ -108,7 +126,8 @@ popUpWin = open(URLStr,'popUpWin', 'toolbar=no,location=no,directories=no,status
 			
 			<tbody>
 
-<?php $query=mysqli_query($con,"select products.productImage1 as pimg1,products.productName as pname,products.id as proid,orders.productId as opid,orders.quantity as qty,products.productPrice as pprice,products.shippingCharge as shippingcharge,orders.paymentMethod as paym,orders.orderDate as odate,orders.id as orderid from orders join products on orders.productId=products.id where orders.userId='".$_SESSION['id']."' and orders.paymentMethod is not null");
+<?php
+$query=mysqli_query($con,"select products.productImage1 as pimg1,products.productName as pname,products.id as proid,orders.productId as opid,orders.quantity as qty,products.productPrice as pprice,products.shippingCharge as shippingcharge,orders.paymentMethod as paym,orders.orderDate as odate,orders.id as orderid from orders join products on orders.productId=products.id where orders.userId='".$_SESSION['id']."' and orders.paymentMethod is not null");
 $cnt=1;
 while($row=mysqli_fetch_array($query))
 {
@@ -123,8 +142,6 @@ while($row=mysqli_fetch_array($query))
 					<td class="cart-product-name-info">
 						<h4 class='cart-product-description'><a href="product-details.php?pid=<?php echo $row['opid'];?>">
 						<?php echo $row['pname'];?></a></h4>
-						
-						
 					</td>
 					<td class="cart-product-quantity">
 						<?php echo $qty=$row['qty']; ?>   
@@ -141,6 +158,7 @@ while($row=mysqli_fetch_array($query))
    data-orderid="<?= htmlentities($row['orderid']); ?>">
    Rastrear
 </a>
+					</td>
 				</tr>
 <?php $cnt=$cnt+1;} ?>
 				
@@ -155,7 +173,8 @@ while($row=mysqli_fetch_array($query))
 		</form>
 		<!-- ============================================== BRANDS CAROUSEL ============================================== -->
 <?php echo include('includes/brands-slider.php');?>
-<!-- ============================================== BRANDS CAROUSEL : END ============================================== -->	</div><!-- /.container -->
+<!-- ============================================== BRANDS CAROUSEL : END ============================================== -->	
+	</div><!-- /.container -->
 </div><!-- /.body-content -->
 <?php include('includes/footer.php');?>
 
@@ -193,15 +212,16 @@ while($row=mysqli_fetch_array($query))
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
+	
 	<div id="modal-overlay" class="modal-overlay">
-  <div class="modal-box">
-    <span class="close-btn" id="close-modal">&times;</span>
-    <h2>Rastreamento do Pedido</h2>
-    <div id="modal-content">
-      Carregando...
-    </div>
-  </div>
-</div>
+	  <div class="modal-box">
+		<span class="close-btn" id="close-modal">&times;</span>
+		<h2>Rastreamento do Pedido</h2>
+		<div id="modal-content">
+		  Carregando...
+		</div>
+	  </div>
+	</div>
 
 <style>
 .modal-overlay {
