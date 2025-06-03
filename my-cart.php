@@ -167,37 +167,28 @@ function gerarCPF() {
 }
 
 // Função para atualizar cliente Asaas
-function atualizarClienteAsaas($asaasCustomerId, $nomeAtual, $email) {
-    $dadosAtualizacao = [
-        'name' => $nomeAtual,
-        'email' => $email,
-    ];
+function atualizarClienteAsaas($customerId, $novoNome) {
+    $url = "https://api-sandbox.asaas.com/v3/customers/" . $customerId;
+    $dados = json_encode(['name' => $novoNome]);
 
-    error_log("Enviando dados para atualização do cliente Asaas: " . json_encode($dadosAtualizacao));
-
-    $curl = curl_init(ASAAS_API_URL . '/customers/' . $asaasCustomerId);
+    $curl = curl_init($url);
     curl_setopt_array($curl, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CUSTOMREQUEST => "PUT",
-        CURLOPT_POSTFIELDS => json_encode($dadosAtualizacao),
+        CURLOPT_CUSTOMREQUEST => 'PUT',
+        CURLOPT_POSTFIELDS => $dados,
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
-            'User-Agent: Portal de Compras',
             'access_token: ' . ASAAS_API_KEY
         ],
     ]);
-    $resp = curl_exec($curl);
+
+    $response = curl_exec($curl);
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
 
-    if ($http_code == 200) {
-        return true;
-    } else {
-        error_log("Erro ao atualizar cliente Asaas (HTTP $http_code): " . $resp);
-        return false;
-    }
+    // Retorna true se atualização OK (código 200)
+    return ($http_code === 200);
 }
-
 
 // Verifica se o usuário está logado
 if (strlen($_SESSION['login']) == 0) {
@@ -210,72 +201,76 @@ if (isset($_POST['submit'])) {
     $userId = $_SESSION['id'];
     $nomeAtualizado = trim($_POST['nome']);
 
-    // Busca dados do usuário
-   $stmt = $con->prepare("SELECT name, email, asaas_customer_id FROM users WHERE id = ?");
+    // Busca dados atuais do usuário
+    $stmt = $con->prepare("SELECT name, email, asaas_customer_id FROM users WHERE id = ?");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $stmt->bind_result($nomeAtual, $email, $asaasCustomerId);
     $stmt->fetch();
     $stmt->close();
 
-     // Atualiza nome no banco se necessário
-// Atualiza nome no banco se necessário
-if (!empty($nomeAtualizado) && $nomeAtualizado !== $nomeAtual) {
-    $stmt = $con->prepare("UPDATE users SET name = ? WHERE id = ?");
-    $stmt->bind_param("si", $nomeAtualizado, $userId);
-    $stmt->execute();
-    $stmt->close();
-    $nomeAtual = $nomeAtualizado;
-}
-
-$cpf = gerarCPF(); // Aqui, antes da criação
-
-// Se não tiver cliente no Asaas, cria
-if (empty($asaasCustomerId)) {
-    $dadosCliente = [
-        'name' => $nomeAtual,
-        'email' => $email,
-        'cpfCnpj' => $cpf
-    ];
-
-    $curl = curl_init(ASAAS_API_URL . '/customers');
-    curl_setopt_array($curl, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode($dadosCliente),
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json',
-            'User-Agent: Portal de Compras',
-            'access_token: ' . ASAAS_API_KEY
-        ],
-    ]);
-    $respCliente = curl_exec($curl);
-    $clienteData = json_decode($respCliente, true);
-    curl_close($curl);
-
-    if (isset($clienteData['id'])) {
-        $asaasCustomerId = $clienteData['id'];
-        $stmt = $con->prepare("UPDATE users SET asaas_customer_id = ? WHERE id = ?");
-        $stmt->bind_param("si", $asaasCustomerId, $userId);
+    // Atualiza nome no banco se necessário
+    if (!empty($nomeAtualizado) && $nomeAtualizado !== $nomeAtual) {
+        $stmt = $con->prepare("UPDATE users SET name = ? WHERE id = ?");
+        $stmt->bind_param("si", $nomeAtualizado, $userId);
         $stmt->execute();
         $stmt->close();
-    } else {
-        echo json_encode(['erro' => 'Falha ao criar cliente', 'resposta' => $clienteData]);
-        exit;
+
+        // Atualiza a variável para usar depois
+        $nomeAtual = $nomeAtualizado;
     }
-}
 
-// Agora sim, atualiza cliente existente
-$resultadoAtualizacao = atualizarClienteAsaas($asaasCustomerId, $nomeAtual, $email);
+    error_log("Nome do formulário: " . $nomeAtualizado);
+    error_log("Nome usado para atualização: " . $nomeAtual);
 
+    $cpf = gerarCPF(); // Supondo que gera um CPF válido
 
-if (!$resultadoAtualizacao) {
-    error_log("Falha na atualização do cliente no Asaas para o usuário $userId");
-    echo json_encode(['erro' => 'Falha ao atualizar cliente no Asaas. Verifique os logs.']);
-    exit;
-}
+    // Se não tem asaas_customer_id, cria cliente no Asaas
+    if (empty($asaasCustomerId)) {
+        $dadosCliente = [
+            'name' => $nomeAtual,
+            'email' => $email,
+            'cpfCnpj' => $cpf
+        ];
 
-sleep(3);
+        $curl = curl_init(ASAAS_API_URL . '/customers');
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($dadosCliente),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'User-Agent: Portal de Compras',
+                'access_token: ' . ASAAS_API_KEY
+            ],
+        ]);
+        $respCliente = curl_exec($curl);
+        $clienteData = json_decode($respCliente, true);
+        curl_close($curl);
+
+        if (isset($clienteData['id'])) {
+            $asaasCustomerId = $clienteData['id'];
+            $stmt = $con->prepare("UPDATE users SET asaas_customer_id = ? WHERE id = ?");
+            $stmt->bind_param("si", $asaasCustomerId, $userId);
+            $stmt->execute();
+            $stmt->close();
+        } else {
+            echo json_encode(['erro' => 'Falha ao criar cliente', 'resposta' => $clienteData]);
+            exit;
+        }
+    }
+
+    // Atualiza nome do cliente no Asaas caso já tenha ID
+    if (!empty($asaasCustomerId)) {
+        $resultadoAtualizacao = atualizarClienteAsaas($asaasCustomerId, $nomeAtual);
+        if (!$resultadoAtualizacao) {
+            error_log("Falha na atualização do cliente no Asaas para o usuário $userId");
+            echo json_encode(['erro' => 'Falha ao atualizar cliente no Asaas. Verifique os logs.']);
+            exit;
+        }
+    }
+
+    sleep(3); // Dá um tempo para o Asaas processar
 
     // Calcula total dos pedidos sem pagamento
     $total = 0.0;
@@ -299,15 +294,16 @@ sleep(3);
         exit;
     }
 
+    // Valida método de pagamento
     $validPaymentMethods = ['Boleto' => 'BOLETO', 'PIX' => 'PIX'];
     if (!array_key_exists($paymethod, $validPaymentMethods)) {
         $paymethod = 'Boleto';
     }
     $billingType = $validPaymentMethods[$paymethod];
 
-    // Criar cobrança no Asaas
+    // Dados para criar cobrança no Asaas
     $dadosCobranca = [
-        'name' => $nomeAtual,
+        'name' => "Cobrança para $nomeAtual",  // Corrigido para usar $nomeAtual
         'customer' => $asaasCustomerId,
         'billingType' => $billingType,
         'value' => number_format($total, 2, '.', ''),
@@ -339,6 +335,7 @@ sleep(3);
     ], JSON_PRETTY_PRINT);
     exit;
 }
+
 ?>
 
 
