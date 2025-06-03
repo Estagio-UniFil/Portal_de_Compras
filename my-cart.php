@@ -20,31 +20,58 @@ class Users {
     }
 
     // Atualiza endereço de cobrança
-    public function updateBillingAddress($address, $state, $city, $pincode) {
-		$pincode = preg_replace('/\D/', '', $pincode);
-		if (strlen($pincode) === 8) {
-			$pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5, 3);
-		}
-        $stmt = $this->con->prepare("UPDATE users SET billingAddress=?, billingState=?, billingCity=?, billingPincode=? WHERE id=?");
-        $stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
-        return $stmt->execute();
+   public function updateBillingAddress($address, $state, $city, $pincode) {
+    // Remove tudo que não for número
+    $pincode = preg_replace('/\D/', '', $pincode);
+
+    // Garante que o CEP tem exatamente 8 dígitos
+    if (strlen($pincode) === 8) {
+        // Aplica a máscara 00000-000
+        $pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5);
+    } else {
+        // Se for inválido, defina como null ou lance exceção
+        // Aqui você pode customizar o tratamento:
+        return false; // ou throw new Exception("CEP inválido");
     }
+
+    // Atualiza no banco
+    $stmt = $this->con->prepare("
+        UPDATE users 
+        SET billingAddress = ?, billingState = ?, billingCity = ?, billingPincode = ? 
+        WHERE id = ?
+    ");
+    $stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
+
+    return $stmt->execute();
+}
+
 
     // Atualiza endereço de envio
 	public function updateShippingAddress($address, $state, $city, $pincode) {
-		// Garante que o CEP está no formato 00000-000
-		$pincode = preg_replace('/\D/', '', $pincode);
-		if (strlen($pincode) === 8) {
-			$pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5, 3);
-		}
-		$stmt = $this->con->prepare("UPDATE users SET shippingAddress=?, shippingState=?, shippingCity=?, shippingPincode=? WHERE id=?");
-		$stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
-		return $stmt->execute();
-	}
-	}
+    // Remove tudo que não for número
+    $pincode = preg_replace('/\D/', '', $pincode);
 
+    // Valida se tem 8 dígitos
+    if (strlen($pincode) === 8) {
+        // Aplica a máscara 00000-000
+        $pincode = substr($pincode, 0, 5) . '-' . substr($pincode, 5);
+    } else {
+        // Tratamento de erro: CEP inválido
+        return false; // ou lançar exceção, dependendo da lógica da sua aplicação
+    }
 
+    // Atualiza no banco
+    $stmt = $this->con->prepare("
+        UPDATE users 
+        SET shippingAddress = ?, shippingState = ?, shippingCity = ?, shippingPincode = ? 
+        WHERE id = ?
+    ");
+    $stmt->bind_param("ssssi", $address, $state, $city, $pincode, $this->userId);
 
+    return $stmt->execute();
+}
+
+}
 
 // Criar instância da classe Users
 if (isset($_SESSION['id'])) {
