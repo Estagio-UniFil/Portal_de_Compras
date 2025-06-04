@@ -119,7 +119,7 @@ $finalStates = ['Entregue', 'Closed']; // estados finais que bloqueiam atualiza√
           <td class="fontkink">
             <select name="status" class="fontkink" required>
               <option value="">Selecionar Status</option>
-              <option value="Pedido Criado">Criado</option>
+              <option value="Pedido criado (ainda n√£o processado)">Criado</option>
               <option value="Pagamento Confirmado">Pagamento Confirmado</option>
               <option value="Em Transporte">Em Transporte</option>
               <option value="Entregue">Entregue</option>
