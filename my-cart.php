@@ -130,10 +130,6 @@ if (isset($_POST['ordersubmit'])) {
             $stmt->execute();
         }
 
-        unset($_SESSION['cart']);
-        $_SESSION['msg_success'] = "Pedido realizado com sucesso!";
-        header('location:payment-method.php');
-        exit();
     } else {
         $_SESSION['msg_error'] = "Seu carrinho está vazio!";
         header('location:payment-method.php');
@@ -938,7 +934,7 @@ echo "Seu carrinho de compras está vazio";
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
-            "timeOut": "4000",
+            "timeOut": "5000",
             "positionClass": "toast-top-right"
         };
         <?php if (isset($_SESSION['msg_success'])): ?>
@@ -966,7 +962,7 @@ document.getElementById('billingcity').addEventListener('input', function (e) {
         toastr.options = {
             closeButton: true,
             progressBar: true,
-            timeOut: 4000,
+            timeOut: 5000,
             positionClass: 'toast-top-right'
         };
         <?php if (isset($_SESSION['msg_success'])): ?>

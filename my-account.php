@@ -310,7 +310,7 @@ $(document).ready(function () {
 setTimeout(() => {
     const toast = document.getElementById('toast');
     if (toast) toast.style.display = 'none';
-}, 2000);
+}, 5000);
 </script>
 
 </body>

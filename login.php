@@ -16,9 +16,12 @@ class Users {
         $stmt = $this->con->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
+        $count = 0;
         $stmt->bind_result($count);
         $stmt->fetch();
 
+        // Garante que $count está definido antes de retornar
+        $stmt->close();
         return $count > 0;  // Retorna true se o e-mail já existir, caso contrário false
     }
 
@@ -191,7 +194,7 @@ setTimeout(function() {
     if (msgBox) {
         msgBox.style.display = 'none';
     }
-}, 2000);
+}, 5000);
 </script>
 
 <header class="header-style-1">

@@ -24,7 +24,7 @@ class Users {
             $update->bind_param("sss", $passwordHash, $email, $contact);
 
             if ($update->execute()) {
-                $_SESSION['errmsg'] = "Senha alterada com sucesso!";
+                $_SESSION['msg_success'] = "Senha alterada com sucesso!";
                 return true;
             } else {
                 $_SESSION['errmsg'] = "Erro ao alterar senha!";
@@ -36,6 +36,8 @@ class Users {
         }
     }
 }
+
+
 
 $user = new Users($con);
 
@@ -61,7 +63,7 @@ if (isset($_POST['change'])) {
 
     // Troca a senha se tudo estiver correto
     if ($user->forgetPassword($email, $contact, $newPassword)) {
-        $_SESSION['errmsg'] = "Senha alterada com sucesso!";
+       $_SESSION['msg_success'] = "Senha alterada com sucesso!";
         header("Location: forgot-password.php");
         exit();
     } else {
@@ -137,9 +139,11 @@ function valid() {
 		document.getElementById("confirmpassword").focus();
 		setTimeout(function() {
 			flash.style.display = "none";
-		}, 2000);
+		}, 5000);
 		return false;
 	}
+
+	
 	return true;
 }
 </script>
@@ -184,12 +188,45 @@ function valid() {
 
 	<?php if (!empty($_SESSION['errmsg'])): ?>
 <div id="flash-message" class="flash-error">
-    <?php
-        echo htmlentities($_SESSION['errmsg']);
-        $_SESSION['errmsg'] = ""; // limpa após exibir
-    ?>
+    <?= htmlentities($_SESSION['errmsg']); ?>
 </div>
+<?php $_SESSION['errmsg'] = ""; ?>
 <?php endif; ?>
+
+<?php if (!empty($_SESSION['msg_success'])): ?>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var flash = document.createElement("div");
+    flash.id = "flash-message";
+    flash.className = "flash-success";
+    flash.textContent = "<?= htmlentities($_SESSION['msg_success']); ?>";
+    document.body.appendChild(flash);
+    flash.style.display = "block";
+    setTimeout(function () {
+        flash.style.display = "none";
+    }, 5000);
+});
+</script>
+<?php $_SESSION['msg_success'] = ""; ?>
+<?php endif; ?>
+
+<style>
+.flash-success {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    font-weight: bold;
+    z-index: 9999;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    animation: fadeOut 2s ease-in-out forwards;
+    animation-delay: 2s;
+}
+</style>
 
 
 <style>
@@ -309,7 +346,7 @@ setTimeout(function() {
     if (flash) {
         flash.style.display = "none";
     }
-}, 2000);
+}, 5000);
 </script>
 
 

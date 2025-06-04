@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
         toast.style.display = "block";
         setTimeout(() => {
             toast.style.display = "none";
-        }, 4000);
+        }, 5000);
     }
 });
 </script>

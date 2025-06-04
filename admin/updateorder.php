@@ -162,7 +162,7 @@ $finalStates = ['Entregue', 'Closed']; // estados finais que bloqueiam atualiza�
           `✅ Pedido #<?php echo $oid; ?> atualizado com sucesso para o status: <strong>${data.status.toUpperCase()}</strong><br>📅 Atualizado em: ${data.date}`
         ).fadeIn();
 
-        setTimeout(() => $('#success-message').fadeOut(), 4000);
+        setTimeout(() => $('#success-message').fadeOut(), 5000);
       }
     });
   });

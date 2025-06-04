@@ -145,20 +145,24 @@ if (isset($_POST['submit'])) {
 
     // Verifica se o pagamento foi criado com sucesso
     if ($http_code == 200 && isset($pagamento['invoiceUrl'])) {
-        // Marca os pedidos como pagos com o método escolhido
-        $update = $con->prepare("
-            UPDATE orders
-            SET paymentMethod = ?
-            WHERE userId = ? AND paymentMethod IS NULL
-        ");
-        $update->bind_param("si", $paymethod, $userId);
-        $update->execute();
-        $update->close();
+    // Marca os pedidos como pagos com o método escolhido
+    $update = $con->prepare("
+        UPDATE orders
+        SET paymentMethod = ?
+        WHERE userId = ? AND paymentMethod IS NULL
+    ");
+    $update->bind_param("si", $paymethod, $userId);
+    $update->execute();
+    $update->close();
 
-        // Redireciona para o link do boleto ou PIX
-        header("Location: " . $pagamento['invoiceUrl']);
-        exit;
-    }
+    // ✅ Zera o carrinho apenas após o pagamento ser criado
+    unset($_SESSION['cart']);
+    $_SESSION['msg_success'] = "Pedido realizado com sucesso!";
+
+    // Redireciona para o link do boleto ou PIX
+    header("Location: " . $pagamento['invoiceUrl']);
+    exit;
+}
 
     // Exibe erro amigável
     echo "<h3>Erro ao processar o pagamento.</h3>";
