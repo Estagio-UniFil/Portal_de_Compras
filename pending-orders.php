@@ -2,12 +2,58 @@
 session_start();
 error_reporting(0);
 include('includes/config.php');
+
+
+if (isset($_GET['deleted'])) {
+    if ($_GET['deleted'] == 1) {
+        echo '
+        <div id="success-message" style="margin: 15px auto; padding: 15px; max-width: 700px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 5px; font-size: 1.1em; text-align:center;">
+            <strong>Sucesso!</strong> Pedido deletado com sucesso.
+        </div>
+        <script>
+            setTimeout(() => {
+                const msg = document.getElementById("success-message");
+                if(msg){
+                    msg.style.transition = "opacity 0.5s ease";
+                    msg.style.opacity = 0;
+                    setTimeout(() => msg.remove(), 500);
+                }
+            }, 5000);
+        </script>';
+    } else {
+        echo '
+        <div id="error-message" style="margin: 15px auto; padding: 15px; max-width: 700px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; font-size: 1.1em; text-align:center;">
+            <strong>Erro!</strong> Não foi possível deletar o pedido. Tente novamente.
+        </div>
+        <script>
+            setTimeout(() => {
+                const msg = document.getElementById("error-message");
+                if(msg){
+                    msg.style.transition = "opacity 0.5s ease";
+                    msg.style.opacity = 0;
+                    setTimeout(() => msg.remove(), 500);
+                }
+            }, 5000);
+        </script>';
+    }
+}
+
 if(strlen($_SESSION['login'])==0) {   
     header('location:login.php');
 } else {
     if (isset($_GET['id'])) {
-        mysqli_query($con,"DELETE FROM orders WHERE userId='".$_SESSION['id']."' AND paymentMethod IS NULL AND id='".$_GET['id']."'");
+    $deleteQuery = mysqli_query($con,"DELETE FROM orders WHERE userId='".$_SESSION['id']."' AND paymentMethod IS NULL AND id='".$_GET['id']."'");
+    if ($deleteQuery) {
+        // Redireciona para a mesma página com parâmetro de sucesso
+        header("Location: pending-orders.php?deleted=1");
+        exit();
+    } else {
+        // Você pode adicionar um parâmetro para erro também se quiser
+        header("Location: pending-orders.php?deleted=0");
+        exit();
     }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -90,7 +136,12 @@ if(strlen($_SESSION['login'])==0) {
                                         <td><?php echo $shippcharge = $row['shippingcharge']; ?></td>
                                         <td><?php echo (($qty*$price)+$shippcharge); ?></td>
                                         <td><?php echo $row['odate']; ?></td>
-                                        <td><a href="pending-orders.php?id=<?php echo $row['oid']; ?>" onclick="return confirm('Deseja realmente deletar este pedido?');">Deletar</a></td>
+                                       <td>
+                                        <a href="#" class="btn-delete-order btn btn-danger btn-sm" data-id="<?php echo $row['oid']; ?>">
+                                        Deletar
+                                        </a>
+                                        </td>
+
                                     </tr>
                                 <?php 
                                     $cnt++;
@@ -139,6 +190,43 @@ if(strlen($_SESSION['login'])==0) {
 <script src="assets/js/bootstrap-select.min.js"></script>
 <script src="assets/js/wow.min.js"></script>
 <script src="assets/js/scripts.js"></script>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="confirmDeleteLabel">Confirmação de Exclusão</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Fechar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Deseja realmente deletar este pedido?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <a href="#" id="btnConfirmDelete" class="btn btn-danger">Deletar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    let deleteUrlBase = 'pending-orders.php?id=';
+
+    $('.btn-delete-order').click(function(e) {
+      e.preventDefault();
+      let orderId = $(this).data('id');
+      // Atualiza o link do botão de confirmação com o ID do pedido
+      $('#btnConfirmDelete').attr('href', deleteUrlBase + orderId);
+      // Abre o modal
+      $('#confirmDeleteModal').modal('show');
+    });
+  });
+</script>
+
 </body>
 </html>
 <?php } ?>
