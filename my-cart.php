@@ -2,6 +2,21 @@
 session_start();
 include('includes/config.php');
 
+
+if (isset($_POST['ordersubmit'])) {
+    $userId = intval($_SESSION['id']);
+
+    if (!empty($_SESSION['cart'])) {
+        // Limpa pedidos pendentes antigos do usuário
+        $con->query("DELETE FROM pending_orders WHERE userId = $userId");
+
+        // Insere os itens atuais do carrinho
+        
+
+    
+    }
+}
+
 class Users {
     private $con;
     private $userId;
@@ -83,6 +98,8 @@ if (isset($_POST['update'])) {
     header("Location: ".$_SERVER['PHP_SELF']);
     exit();
 }
+
+
 
 
 error_reporting(0);
@@ -335,11 +352,6 @@ if (isset($_POST['submit'])) {
 ?>
 
 
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -525,21 +537,20 @@ if(!empty($_SESSION['cart'])){
 $_SESSION['sid']=$pd;
 						 ?></a></h4>
 						<div class="row">
-    <div class="col-sm-4">
-        <!-- Avaliação (Rating) -->
-        <div class="rating rateit-small"></div>
-    </div>
-    <div class="col-sm-8">
-        <?php 
-        $rt = mysqli_query($con, "select * from productreviews where productId='$pd'");
-        $num = mysqli_num_rows($rt);
-        ?>
-        <div class="reviews">
-            ( <?php echo htmlentities($num); ?> Reviews )
-        </div>
-    </div>
-</div><!-- /.row -->
-
+							<div class="col-sm-4">
+								<div class="rating rateit-small"></div>
+							</div>
+							<div class="col-sm-8">
+<?php $rt=mysqli_query($con,"select * from productreviews where productId='$pd'");
+$num=mysqli_num_rows($rt);
+{
+?>
+								<div class="reviews">
+									( <?php echo htmlentities($num);?> Reviews )
+								</div>
+								<?php } ?>
+							</div>
+						</div><!-- /.row -->
 						
 					</td>
 					<td class="cart-product-quantity">
@@ -849,43 +860,21 @@ while($row=mysqli_fetch_array($query))
 }
 </style>
 
-
-<style>
-
-/* Ajuste para a linha (row) */
-.row {
-    display: flex;
-    flex-direction: row; /* Mantém os itens lado a lado */
-}
-
-.col-sm-4 {
-    display: flex;
-    justify-content: center; /* Centraliza as estrelas na coluna */
-}
-
-.col-sm-8 {
-    display: flex;
-    flex-direction: column; /* Empilha os itens verticalmente */
-    align-items: flex-start; /* Alinha o texto à esquerda */
-    font-size: 14px; /* Ajuste do tamanho da fonte para o texto */
-    margin-top: 10px; /* Ajuste de espaço entre as estrelas e o texto */
-}
-
-/* Ajuste para o texto das reviews */
-.reviews {
-    font-size: 14px;  /* Ajuste do tamanho da fonte */
-    color: #666;      /* Cor do texto */
-    margin-top: 5px;  /* Espaçamento entre as estrelas e o texto */
-}
-
-</style>
-
 <div class="confirm-message">
   <p>Você deseja realmente prosseguir para o pagamento?</p>
 
+  <form method="post">
   <button type="submit" name="ordersubmit" class="btn btn-success">
     Confirmar e Enviar
   </button>
+</form>
+
+<?php if (!empty($message)): ?>
+  <div style="margin-top: 15px; padding: 10px; background-color: #d4edda; color: #155724; border-radius: 5px;">
+    <?php echo $message; ?>
+  </div>
+<?php endif; ?>
+
 
   <label for="confirm-check" class="btn btn-secondary" style="cursor:pointer;">
     Cancelar
