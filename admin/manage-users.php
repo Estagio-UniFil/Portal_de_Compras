@@ -77,6 +77,21 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
                 display: none;
             }
         }
+
+        /* Estilo para a mensagem de confirmação */
+        .confirm-message {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f8f9fa;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        /* Botões de confirmação */
+        .confirm-message a {
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
@@ -142,11 +157,17 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
                                             </td>
                                             <td><?php echo htmlentities($row['regDate']); ?></td>
                                             <td>
-                                                <a href="manage-users.php?id=<?php echo $row['id']; ?>&del=delete" 
-                                                   onclick="return confirm('Tem certeza que deseja excluir este usuário?')" 
-                                                   class="btn btn-danger btn-sm">
+                                                <!-- Botão de Exclusão -->
+                                                <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="showConfirmation(<?php echo $row['id']; ?>, '<?php echo addslashes(htmlspecialchars($row['name'])); ?>')">
                                                     Excluir
                                                 </a>
+
+                                                <!-- Bloco de confirmação de exclusão -->
+                                                <div id="confirmMessage<?php echo $row['id']; ?>" class="confirm-message" style="display:none;">
+                                                    <p>Tem certeza que deseja excluir o usuário <?php echo htmlentities($row['name']); ?>?</p>
+                                                    <a href="manage-users.php?id=<?php echo $row['id']; ?>&del=delete" class="btn btn-danger">Sim, Excluir</a>
+                                                    <a href="javascript:void(0);" onclick="hideConfirmation(<?php echo $row['id']; ?>)" class="btn btn-secondary">Cancelar</a>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php $cnt++; } ?>
@@ -190,9 +211,22 @@ if (isset($_GET['del']) && isset($_GET['id'])) {
         $('.dataTables_paginate > a:first-child').append('<i class="icon-chevron-left shaded"></i>');
         $('.dataTables_paginate > a:last-child').append('<i class="icon-chevron-right shaded"></i>');
     });
+
+    // Função para mostrar a confirmação de exclusão
+    function showConfirmation(userId, userName) {
+        var confirmMessage = document.getElementById("confirmMessage" + userId);  // Pega a div da confirmação
+        confirmMessage.style.display = "block";  // Exibe a confirmação
+    }
+
+    // Função para esconder a confirmação de exclusão
+    function hideConfirmation(userId) {
+        var confirmMessage = document.getElementById("confirmMessage" + userId);  // Pega a div da confirmação
+        confirmMessage.style.display = "none";  // Esconde a confirmação
+    }
 </script>
 
 </body>
 </html>
+
 
 
