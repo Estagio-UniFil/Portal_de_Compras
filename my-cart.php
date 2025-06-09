@@ -5,12 +5,14 @@ include('includes/config.php');
 
 if (isset($_POST['ordersubmit'])) {
     $userId = intval($_SESSION['id']);
+    $showToast = true;
+    
 
     if (!empty($_SESSION['cart'])) {
         // Limpa pedidos pendentes antigos do usuário
         $con->query("DELETE FROM pending_orders WHERE userId = $userId");
-
-        // Insere os itens atuais do carrinho
+        
+        
         
 
     
@@ -863,16 +865,20 @@ while($row=mysqli_fetch_array($query))
 <div class="confirm-message">
   <p>Você deseja realmente prosseguir para o pagamento?</p>
 
-  <form method="post">
-  <button type="submit" name="ordersubmit" class="btn btn-success">
-    Confirmar e Enviar
-  </button>
+ <button type="submit" name="ordersubmit" class="btn btn-success">
+        Confirmar e Enviar
+    </button>
 </form>
 
-<?php if (!empty($message)): ?>
-  <div style="margin-top: 15px; padding: 10px; background-color: #d4edda; color: #155724; border-radius: 5px;">
-    <?php echo $message; ?>
-  </div>
+<!-- Inclusão do toastr -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<?php if ($showToast): ?>
+<script>
+  toastr.success("Pedido enviado com sucesso! Acesse <strong>Minha Conta &gt; Pagamentos</strong> e clique em <strong>Prosseguir para pagamento</strong>");
+</script>
 <?php endif; ?>
 
 
@@ -917,12 +923,9 @@ echo "Seu carrinho de compras está vazio";
 <?php include('includes/footer.php');?>
 
 	<script src="assets/js/jquery-1.11.1.min.js"></script>
-	
 	<script src="assets/js/bootstrap.min.js"></script>
-	
 	<script src="assets/js/bootstrap-hover-dropdown.min.js"></script>
 	<script src="assets/js/owl.carousel.min.js"></script>
-	
 	<script src="assets/js/echo.min.js"></script>
 	<script src="assets/js/jquery.easing-1.3.min.js"></script>
 	<script src="assets/js/bootstrap-slider.min.js"></script>
