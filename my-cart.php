@@ -877,10 +877,9 @@ while($row=mysqli_fetch_array($query))
 
 <?php if ($showToast): ?>
 <script>
-  toastr.success("Pedido enviado com sucesso! Acesse <strong>Minha Conta &gt; Pagamentos</strong> e clique em <strong>Prosseguir para pagamento</strong>");
+    toastr.success("Pedido enviado com sucesso! Acesse <strong>Minha Conta &gt; Pagamentos</strong> e clique em <strong>Prosseguir para pagamento</strong>", null, {timeOut: 10000});
 </script>
 <?php endif; ?>
-
 
   <label for="confirm-check" class="btn btn-secondary" style="cursor:pointer;">
     Cancelar
@@ -958,7 +957,7 @@ echo "Seu carrinho de compras está vazio";
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
-            "timeOut": "5000",
+            "timeOut": 5000,
             "positionClass": "toast-top-right"
         };
         <?php if (isset($_SESSION['msg_success'])): ?>
