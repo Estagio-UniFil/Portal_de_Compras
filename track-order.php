@@ -67,7 +67,7 @@ while($row=mysqli_fetch_array($ret))
 else{
    ?>
    <tr>
-   <td colspan="2">Pedido ainda não processado</td>
+   <td colspan="2">Pedido criado (ainda não processado)</td>
    </tr>
    <?php  }
 $st='Delivered';
