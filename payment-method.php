@@ -119,11 +119,30 @@ if (isset($_POST['submit'])) {
     $billingType = $validPaymentMethods[$paymethod];
 
     // Cria a cobrança
+    // Busca nomes dos produtos para a descrição
+    $sqlDesc = "
+        SELECT p.productName, o.quantity
+        FROM orders o
+        JOIN products p ON o.productId = p.id
+        WHERE o.userId = ? AND o.paymentMethod IS NULL
+    ";
+    $stmtDesc = $con->prepare($sqlDesc);
+    $stmtDesc->bind_param("i", $userId);
+    $stmtDesc->execute();
+    $resultDesc = $stmtDesc->get_result();
+    $produtos = [];
+    while ($rowDesc = $resultDesc->fetch_assoc()) {
+        $produtos[] = $rowDesc['productName'] . ' (x' . $rowDesc['quantity'] . ')';
+    }
+    $stmtDesc->close();
+    $descricao = 'Produtos: ' . implode(', ', $produtos);
+
     $dadosCobranca = [
         'customer' => $asaasCustomerId,
         'billingType' => $billingType,
         'value' => number_format($total, 2, '.', ''),
-        'dueDate' => date('Y-m-d', strtotime('+3 days'))
+        'dueDate' => date('Y-m-d', strtotime('+3 days')),
+        'description' => $descricao
     ];
 
     $curl = curl_init(ASAAS_API_URL . '/payments');
@@ -155,9 +174,8 @@ if (isset($_POST['submit'])) {
     $update->execute();
     $update->close();
 
-    // ✅ Zera o carrinho apenas após o pagamento ser criado
-    unset($_SESSION['cart']);
-    $_SESSION['msg_success'] = "Pedido realizado com sucesso!";
+   
+
 
     // Redireciona para o link do boleto ou PIX
     header("Location: " . $pagamento['invoiceUrl']);
@@ -289,7 +307,7 @@ if (isset($_POST['submit'])) {
         toastr.options = {
             closeButton: true,
             progressBar: true,
-            timeOut: 4000,
+            timeOut: 5000,
             positionClass: "toast-top-right"
         };
         toastr.success("<?php echo addslashes($mensagem_toast); ?>");

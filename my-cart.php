@@ -12,9 +12,6 @@ if (isset($_POST['ordersubmit'])) {
         // Limpa pedidos pendentes antigos do usuário
         $con->query("DELETE FROM pending_orders WHERE userId = $userId");
         
-        
-        
-
     
     }
 }
@@ -870,16 +867,62 @@ while($row=mysqli_fetch_array($query))
     </button>
 </form>
 
-<!-- Inclusão do toastr -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <?php if ($showToast): ?>
 <script>
     toastr.success("Pedido enviado com sucesso! Acesse <strong>Minha Conta &gt; Pagamentos</strong> e clique em <strong>Prosseguir para pagamento</strong>", null, {timeOut: 10000});
 </script>
 <?php endif; ?>
+<?php
+// Zera o carrinho após confirmação do pedido
+if (isset($_POST['ordersubmit'])) {
+    $_SESSION['cart'] = [];
+    // Remove o POST para evitar reenvio do formulário ao dar reload
+    echo "<script>
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.pathname);
+        }
+        // Limpa visualmente o carrinho mantendo a identidade visual
+        var cartTable = document.querySelector('.shopping-cart-table .table-responsive');
+        if (cartTable) {
+            cartTable.innerHTML = `
+                <table class='table table-bordered'>
+                    <thead>
+                        <tr>
+                            <th class='cart-romove item'>Remover</th>
+                            <th class='cart-description item'>Imagem</th>
+                            <th class='cart-product-name item'>Nome do Produto</th>
+                            <th class='cart-qty item'>Quantidade</th>
+                            <th class='cart-sub-total item'>Preço por Unidade</th>
+                            <th class='cart-sub-total item'>Taxa de Frete</th>
+                            <th class='cart-total last-item'>Total Geral</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan='7'>
+                                <div class='alert alert-info text-center' style='margin: 30px 0; font-size: 1.2em;'>
+                                    Seu carrinho de compras está vazio
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+        // Zera o total geral mantendo o layout
+        var totalSpan = document.querySelector('.cart-grand-total .inner-left-md');
+        if (totalSpan) totalSpan.textContent = '0,00';
+    </script>";
+}
+?>
+
+
+<!-- Inclusão do toastr -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 
   <label for="confirm-check" class="btn btn-secondary" style="cursor:pointer;">
     Cancelar
