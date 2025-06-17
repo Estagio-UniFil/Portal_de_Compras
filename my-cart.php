@@ -544,13 +544,13 @@ $_SESSION['sid']=$pd;
 $num=mysqli_num_rows($rt);
 {
 ?>
-								<div class="reviews">
-									( <?php echo htmlentities($num);?> Reviews )
-								</div>
-								<?php } ?>
-							</div>
-						</div><!-- /.row -->
-						
+                           <div class="reviews" style="margin-left: 40px;">
+                                    ( <?php echo htmlentities($num);?> Reviews )
+                                </div>
+                                <?php } ?>
+                            </div>
+                        </div><!-- /.row -->
+
 					</td>
 					<td class="cart-product-quantity">
   <div class="quant-input d-flex align-items-center">
