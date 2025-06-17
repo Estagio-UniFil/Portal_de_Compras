@@ -23,6 +23,22 @@ if (isset($_GET['action']) && $_GET['action'] === "add" && isset($_GET['id'])) {
 }
 
 
+if (!isset($_GET['pid']) || !is_numeric($_GET['pid'])) {
+    echo "<h3 style='color:red; text-align:center;'>Produto inválido ou não especificado.</h3>";
+    exit();
+}
+
+$pid = intval($_GET['pid']); // Força para número inteiro
+$query = mysqli_query($con, "SELECT * FROM products WHERE id = '$pid'");
+
+// Verifica se o produto existe
+if (!$query || mysqli_num_rows($query) == 0) {
+    echo "<h3 style='color:red; text-align:center;'>Produto não encontrado.</h3>";
+    exit();
+}
+
+$product = mysqli_fetch_array($query);
+
 
 class Orders {
     private $con;

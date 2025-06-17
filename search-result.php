@@ -88,6 +88,12 @@ $num = $ret->num_rows;
 // ** ABRE DIV ROW PARA AGRUPAR OS PRODUTOS **
 echo '<div class="row">';
 
+if ($num === 1) {
+    $row = $ret->fetch_assoc();
+    header("Location: product-details.php?pid=" . $row['id']);
+    exit();
+}
+
 if ($num > 0) {
     while ($row = $ret->fetch_assoc()) {
         ?>
