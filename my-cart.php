@@ -544,8 +544,8 @@ $_SESSION['sid']=$pd;
         $num = mysqli_num_rows($rt);
         {
         ?>
-            <div class="reviews">
-                ( <?php echo htmlentities($num); ?> Reviews )
+            <div class="reviews" style="white-space: nowrap; display: inline-block; font-size: 14px; color: #555;">
+                (<?php echo htmlentities($num); ?> Reviews)
             </div>
         <?php } ?>
     </div>
